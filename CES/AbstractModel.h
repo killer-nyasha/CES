@@ -1,14 +1,12 @@
 #pragma once
 
+#include "Board.h"
+
 //наследовать от него не надо, это скорее как пример
 class AbstractModel
 {
-	class Hod
-	{
 
-	};
+	void getVariants(std::vector<Turn>& variants) const;
 
-	void getVariants(std::vector<Hod>& variants) const;
-
-	void apply(Hod& h);
+	void apply(Turn& h);
 };
