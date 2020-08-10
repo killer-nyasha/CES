@@ -50,6 +50,8 @@ public:
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0)
                     setField(i, j, bChecker);
+
+        prevTurn.unit = bChecker;
     }
     
     size_t getField(const size_t x, const size_t y) const
@@ -73,7 +75,7 @@ public:
         // не может ли она съесть ещё
         if (prevTurn.ate)
         {
-            res = beatTurnVariants(prevTurn.to);
+            res = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
             if (res.size())
                 return res;
         }
@@ -84,9 +86,23 @@ public:
             // (бой обязательный, поэтому проверяется в первую очередь)
             for (size_t i = 1; i <= 8; ++i)
                 for (size_t j = 1; j <= 8; ++j)
-                    if ((i + j) % 2 == 0 && isUnit(getField(i,j)) && getColor(getField(i,j)) != getColor(prevTurn.unit))
-                        res += beatTurnVariants(i, j);
+                    if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
+                    {
+                        auto turns = beatTurnVariants(i, j);
+                        res.insert(res.end(), turns.begin(), turns.end());
+                    }
+            if (res.size())
+                return res;
         }
+
+        for (size_t i = 1; i <= 8; ++i)
+            for (size_t j = 1; j <= 8; ++j)
+                if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
+                {
+                    auto turns = turnVariants(i, j);
+                    res.insert(res.end(), turns.begin(), turns.end());
+                }
+        return res;
     }
 
     void doTurn(Turn turn)
@@ -144,6 +160,11 @@ private:
         return !isWhite(unit);
     }
 
+    bool getColor(const size_t x, const size_t y) const
+    {
+        return !isWhite(getField(x,y));
+    }
+
     bool isEmpty(const size_t x, const size_t y) const
     {
         return getField(x, y) == Field::empty;
@@ -155,13 +176,13 @@ private:
         size_t unit = getField(x, y);
         if (isChecker(x,y))
         {
-            if ((isUnit(x - 1, y - 1) && (!outOfRange(x, y) ? !isUnit(x - 2, y - 2) : false())))
+            if ((!outOfRange(x - 1, y - 1) ? isUnit(x - 1, y - 1) : false() && (!outOfRange(x - 2, y - 2) ? !isUnit(x - 2, y - 2) : false())) && getColor(x-1,y-1)!=getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, true, false));
-            if ((isUnit(x - 1, y + 1) && (!outOfRange(x, y) ? !isUnit(x - 2, y + 2) : false())))
+            if ((!outOfRange(x - 1, y + 1) ? isUnit(x - 1, y + 1) : false() && (!outOfRange(x - 2, y + 2) ? !isUnit(x - 2, y + 2) : false())) && getColor(x - 1, y + 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x - 2,y + 2 }, true, false));
-            if ((isUnit(x + 1, y - 1) && (!outOfRange(x, y) ? !isUnit(x + 2, y - 2) : false())))
+            if ((!outOfRange(x + 1, y - 1) ? isUnit(x + 1, y - 1) : false() && (!outOfRange(x + 2, y - 2) ? !isUnit(x + 2, y - 2) : false())) && getColor(x + 1, y - 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, true, false));
-            if ((isUnit(x + 1, y + 1) && (!outOfRange(x, y) ? !isUnit(x + 2, y + 2) : false())))
+            if ((!outOfRange(x + 1, y + 1) ? isUnit(x + 1, y + 1) : false() && (!outOfRange(x + 2, y + 2) ? !isUnit(x + 2, y + 2) : false())) && getColor(x + 1, y + 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, true, false));
         }
 
@@ -191,7 +212,13 @@ private:
         return res;
     }
 
-    std::bitset<X*Y/2* 3> board;
+    template <typename T>
+    void push_back(std::vector<T>& to, std::vector<T>& from)
+    {
+        for (auto o : from)
+            to.push_back(from);
+    }
 
+    std::bitset<X*Y/2* 3> board;
     Turn prevTurn;
 };
