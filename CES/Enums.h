@@ -8,3 +8,9 @@ enum Field
     wKing,
     bKing,
 };
+
+enum Colors
+{
+    White,
+    Black,
+};
