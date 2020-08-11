@@ -16,8 +16,8 @@ int main()
     {
         auto p_turnsW = b.getVariants();
         auto turnsW = *p_turnsW;
-        Poisk<decltype(b), Turn> ces;
-        ces.poisk(b);
+        //Poisk<decltype(b), Turn> ces;
+        //ces.poisk(b);
         b.doTurn(turnsW[turnsW.size()/2]);
         b.drawBoard();
         Sleep(200);
