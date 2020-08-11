@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "Enums.h"
-#include "Pools.h"
 
 template <typename const size_t X, const size_t Y>
 class Board;
@@ -18,10 +17,6 @@ struct FieldPos
 class Turn
 {
     friend Board<8, 8>;
-    friend Board<7, 7>;
-    friend Board<6, 6>;
-
-
     size_t unit = Field::empty;
     FieldPos from, to, ate;
 
@@ -71,20 +66,17 @@ public:
         (*this)(x, y, 3) = bits[0];
     }
 
-    PoolPointer<std::vector<Turn>> getVariants() const
+    std::vector<Turn> getVariants() const
     {
-        PoolPointer<std::vector<Turn>> p_res;
-        auto& res = *p_res;
-
-        //std::vector<Turn> res;
+        std::vector<Turn> res;
 
         // если в прошлом ходе шашка съела другую, то нужно проверить
         // не может ли она съесть ещё
         if (prevTurn.ate.x && prevTurn.ate.y)
         {
-            auto best = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
-            if (best->size())
-                return std::move(best);
+            res = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
+            if (res.size())
+                return res;
         }
 
         //else
@@ -96,10 +88,10 @@ public:
                     if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
                     {
                         auto turns = beatTurnVariants(i, j);
-                        res.insert(res.end(), turns->begin(), turns->end());
+                        res.insert(res.end(), turns.begin(), turns.end());
                     }
             if (res.size())
-                return std::move(p_res);
+                return res;
         }
 
         for (size_t i = 1; i <= 8; ++i)
@@ -107,9 +99,9 @@ public:
                 if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
                 {
                     auto turns = turnVariants(i, j, getColor(i,j));
-                    res.insert(res.end(), turns->begin(), turns->end());
+                    res.insert(res.end(), turns.begin(), turns.end());
                 }
-        return std::move(p_res);
+        return res;
     }
 
     void doTurn(Turn turn)
@@ -219,11 +211,9 @@ private:
     }
 
 
-    PoolPointer<std::vector<Turn>> beatTurnVariants(const size_t x, const size_t y) const
+    std::vector<Turn> beatTurnVariants(const size_t x, const size_t y) const
     {
-        PoolPointer<std::vector<Turn>> p_res;
-        auto& res = *p_res;
-
+        std::vector<Turn> res;
         size_t unit = getField(x, y);
         if (isChecker(x,y))
         {
@@ -244,16 +234,13 @@ private:
         {
             // v pizdu...
         }
-        return std::move(p_res);
+        return res;
     }
 
-    PoolPointer<std::vector<Turn>> turnVariants(const size_t x, const size_t y, bool black) const
+    std::vector<Turn> turnVariants(const size_t x, const size_t y, bool black) const
     {
         int isBlack = black ? -1 : 1;
-
-        PoolPointer<std::vector<Turn>> p_res;
-        auto& res = *p_res;
-
+        std::vector<Turn> res;
         size_t unit = getField(x, y);
         if (isChecker(x, y))
         {
@@ -267,7 +254,7 @@ private:
         {
             // v pizdu...
         }
-        return p_res;
+        return res;
     }
 
     template <typename T>
