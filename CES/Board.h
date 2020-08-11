@@ -40,16 +40,19 @@ public:
     {
         //init standart board (russian checkers)
 
-        wCheckers = 12, bCheckers = 12;
-        for (size_t i = 1; i <= 3; ++i)
-            for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0)
-                    setField(i, j, wChecker);
-
-        for (size_t i = 8; i > 5; --i)
-            for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0)
-                    setField(i, j, bChecker);
+        wCheckers = 2, bCheckers = 2;
+        //for (size_t i = 1; i <= 3; ++i)
+            //for (size_t j = 1; j <= 8; ++j)
+                //if ((i + j) % 2 == 0)
+                    //setField(i, j, wChecker);
+        setField(1, 3, wChecker);
+        setField(1, 5, wChecker);
+        setField(8, 2, bChecker);
+        setField(8, 4, bChecker);
+        //for (size_t i = 8; i > 5; --i)
+            //for (size_t j = 1; j <= 8; ++j)
+                //if ((i + j) % 2 == 0)
+                    //setField(i, j, bChecker);
 
         prevTurn.unit = bChecker;
     }
