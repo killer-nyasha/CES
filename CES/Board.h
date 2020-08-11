@@ -29,6 +29,12 @@ class Turn
 public:
 
     bool willBecomeKing() const { return willBecomeKing_; }
+
+    friend std::ostream& operator<<(std::ostream& cout, const Turn& t)
+    {
+        cout << t.from.x << t.from.y << " " << t.to.x << t.to.y;
+        return cout;
+    }
 };
 
 template <typename const size_t X, const size_t Y>
@@ -143,9 +149,12 @@ public:
     {
         system("cls");
         std::cout << "\n\n\n\n\n\n\n";
+        std::cout << "\n                                                    abcdefgh";
+        std::cout << "\n                                                    --------";
         for (size_t i = 8; i >= 1; --i)
         {
             std::cout << "\n                                                  ";
+            std::cout << i << "|";
             for (size_t j = 1; j <= 8; ++j)
             {
                 if ((i + j) % 2 == 0) drawObject(getField(i, j));

@@ -18,15 +18,26 @@ int main()
     {
         auto p_turnsW = b.getVariants();
         auto turnsW = *p_turnsW;
-        Poisk<decltype(b), Turn> ces;
-        ces.selectTurn(b);
-        b.doTurn(turnsW[turnsW.size()/2]);
+        DeepPoisk<decltype(b), Turn> ces;
+        b.doTurn(ces.selectTurn(b));
         b.drawBoard();
         Sleep(200);
 
         auto p_turnsB = b.getVariants();
         auto turnsB = *p_turnsB;
-        b.doTurn(turnsB[turnsB.size() / 2]);
+
+        if (true) //human
+        {
+            for (size_t i = 0; i < turnsB.size(); i++)
+                std::cout << turnsB[i];
+
+            int i2;
+            std::cin >> i2;
+            b.doTurn(turnsB[i2]);
+        }
+        else //bot
+            b.doTurn(turnsB[turnsB.size() / 2]);
+
         b.drawBoard();
         Sleep(200);
     }

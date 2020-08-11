@@ -2,7 +2,7 @@
 #include <vector>
 
 template <typename M, typename T>
-class Poisk
+class DeepPoisk
 {
 public:
 
@@ -21,10 +21,14 @@ public:
 			auto pair = poisk(modelCopy);
 			results.push_back((float)pair.first / (float)pair.second);
 
-			std::cout << "yeah!";
+			//std::cout << "yeah!";
 		}
 
-		return turnsW[0];
+		size_t maxI = 0;
+		for (size_t i = 1; i < results.size(); i++)
+			if (results[i] > results[maxI])
+				maxI = i;
+		return turnsW[maxI];
 	}
 
 	//����� � �������
@@ -61,4 +65,42 @@ public:
 
 		//throw "� ��� ����� �� ������";
 	}
+
+	//����� � �������
+	std::pair<float, float> poisk2(M& model, int maxDepth = 15, int depth = 0)
+	{
+		auto variants = model.getVariants();
+
+		float rating = 0;
+		float maxRating = 0;
+
+		for (auto& v : *variants)
+		{
+			M modelCopy = model;
+			modelCopy.doTurn(v);
+
+			//кто-то выиграл
+			if (modelCopy.won() != -1)
+			{
+				//std::cout << "end at " << depth << "\n";
+				if (modelCopy.won() == 0)
+					rating += 1;
+				maxRating += 1;
+			}
+			else if (depth == maxDepth) //заканчиваем ветку
+			{
+				rating += modelCopy.getPositionRating();
+				maxRating += 1;
+			}
+			else
+			{
+				auto r = poisk2(modelCopy, maxDepth, depth + 1);
+				rating += r.first;
+				maxRating += r.second;
+			}
+		}
+
+		return std::make_pair(rating, maxRating);
+	}
+
 };
