@@ -18,7 +18,7 @@ public:
 			M modelCopy = model;
 			modelCopy.doTurn(turnsW[i]);
 
-			auto pair = poisk(modelCopy);
+			auto pair = poisk2(modelCopy);
 			results.push_back((float)pair.first / (float)pair.second);
 
 			//std::cout << "yeah!";
@@ -67,7 +67,7 @@ public:
 	}
 
 	//����� � �������
-	std::pair<float, float> poisk2(M& model, int maxDepth = 15, int depth = 0)
+	std::pair<float, float> poisk2(M& model, int maxDepth = 10, int depth = 0)
 	{
 		auto variants = model.getVariants();
 
@@ -89,7 +89,7 @@ public:
 			}
 			else if (depth == maxDepth) //заканчиваем ветку
 			{
-				rating += modelCopy.getPositionRating();
+				rating += (modelCopy.boardAnalize()+1)/3.0f;
 				maxRating += 1;
 			}
 			else

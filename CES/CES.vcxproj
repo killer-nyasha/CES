@@ -150,7 +150,6 @@
     <ClCompile Include="CES.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AbstractModel.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="Poisk.h" />

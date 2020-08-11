@@ -26,9 +26,6 @@
     <ClInclude Include="Poisk.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractModel.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Enums.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>

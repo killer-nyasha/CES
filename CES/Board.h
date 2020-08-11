@@ -32,7 +32,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& cout, const Turn& t)
     {
-        cout << t.from.x << t.from.y << " " << t.to.x << t.to.y;
+        cout << (char)('a'-1+t.from.y) << t.from.x << " " << (char)('a' - 1 + t.to.y) << t.to.x;
         return cout;
     }
 };
@@ -52,9 +52,9 @@ public:
                 //if ((i + j) % 2 == 0)
                     //setField(i, j, wChecker);
         setField(1, 3, wChecker);
-        //setField(1, 5, wChecker);
+        setField(1, 5, wChecker);
         setField(8, 2, bChecker);
-        //setField(8, 4, bChecker);
+        setField(8, 4, bChecker);
         //for (size_t i = 8; i > 5; --i)
             //for (size_t j = 1; j <= 8; ++j)
                 //if ((i + j) % 2 == 0)
@@ -149,8 +149,8 @@ public:
     {
         system("cls");
         std::cout << "\n\n\n\n\n\n\n";
-        std::cout << "\n                                                    abcdefgh";
-        std::cout << "\n                                                    --------";
+        std::cout << "\n                                                    a b c d e f g h";
+        std::cout << "\n                                                    ---------------";
         for (size_t i = 8; i >= 1; --i)
         {
             std::cout << "\n                                                  ";
@@ -160,7 +160,10 @@ public:
                 if ((i + j) % 2 == 0) drawObject(getField(i, j));
                 else std::cout << "  ";
             }
+            std::cout << "|" << i;
         }
+        std::cout << "\n                                                    ---------------";
+        std::cout << "\n                                                    a b c d e f g h";
     }
 
     float boardAnalize()
