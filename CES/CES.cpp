@@ -16,31 +16,36 @@ int main()
 
     while (b.won() == -1)
     {
-        auto p_turnsB = b.getVariants();
-        auto turnsB = *p_turnsB;
-
-        if (true) //human
+        if (b.whoseTurn() == White)
         {
-            std::cout << "\n";
-            for (size_t i = 0; i < turnsB.size(); i++)
-                std::cout << i << ": " << turnsB[i] << "\n";
+            auto p_turnsB = b.getVariants();
+            auto turnsB = *p_turnsB;
 
-            int i2;
-            std::cin >> i2;
-            b.doTurn(turnsB[i2]);
+            if (true) //human
+            {
+                std::cout << "\n";
+                for (size_t i = 0; i < turnsB.size(); i++)
+                    std::cout << i << ": " << turnsB[i] << "\n";
+
+                int i2;
+                std::cin >> i2;
+                b.doTurn(turnsB[i2]);
+            }
+            else //bot
+                b.doTurn(turnsB[turnsB.size() / 2]);
+
+            b.drawBoard();
+            Sleep(200);
         }
-        else //bot
-            b.doTurn(turnsB[turnsB.size() / 2]);
-
-        b.drawBoard();
-        Sleep(200);
-
-        auto p_turnsW = b.getVariants();
-        auto turnsW = *p_turnsW;
-        DeepPoisk<decltype(b), Turn> ces;
-        b.doTurn(ces.selectTurn(b));
-        b.drawBoard();
-        Sleep(200);
+        else
+        {
+            auto p_turnsW = b.getVariants();
+            auto turnsW = *p_turnsW;
+            DeepPoisk<decltype(b), Turn> ces;
+            b.doTurn(ces.selectTurn(b));
+            b.drawBoard();
+            Sleep(200);
+        }
     }
     std::cout << "\n end of game!\n";
 }
