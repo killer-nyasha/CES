@@ -1,18 +1,31 @@
-﻿#include "Board.h"
-#include <ctime>
+﻿#include <ctime>
 #include <Windows.h>
+
+#include "Board.h"
+#include "Poisk.h"
 
 int main()
 {
     srand(time(NULL));
     Board<8,8> b;
-    std::cout << b.getVariants().size() << " possible turns\n";
+    //std::cout << b.getVariants().size() << " possible turns\n";
+
+    b.drawBoard();
+
     while (b.won() == -1)
     {
+        auto p_turnsW = b.getVariants();
+        auto turnsW = *p_turnsW;
+        //Poisk<decltype(b), Turn> ces;
+        //ces.poisk(b);
+        b.doTurn(turnsW[turnsW.size()/2]);
         b.drawBoard();
-        auto turns = b.getVariants();
-        b.doTurn(turns[turns.size()/2]);
-        Sleep(1500);
-    }
+        Sleep(200);
+
+        auto p_turnsB = b.getVariants();
+        auto turnsB = *p_turnsB;
+        b.doTurn(turnsB[turnsB.size() / 2]);
+        b.drawBoard();
+        Sleep(200);
     std::cout << "\n end of game!\n";
 }
