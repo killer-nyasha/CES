@@ -26,7 +26,7 @@ int main()
         auto p_turnsB = b.getVariants();
         auto turnsB = *p_turnsB;
 
-        if (false) //human
+        if (true) //human
         {
             std::cout << "\n";
             for (size_t i = 0; i < turnsB.size(); i++)

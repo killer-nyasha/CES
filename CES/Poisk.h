@@ -67,7 +67,7 @@ public:
 	}
 
 	//����� � �������
-	std::pair<float, float> poisk2(M& model, int maxDepth = 10, int depth = 0)
+	std::pair<float, float> poisk2(M& model, int maxDepth = 7, int depth = 0)
 	{
 		auto variants = model.getVariants();
 
