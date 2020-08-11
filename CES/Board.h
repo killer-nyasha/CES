@@ -46,9 +46,9 @@ public:
                 //if ((i + j) % 2 == 0)
                     //setField(i, j, wChecker);
         setField(1, 3, wChecker);
-        setField(1, 5, wChecker);
+        //setField(1, 5, wChecker);
         setField(8, 2, bChecker);
-        setField(8, 4, bChecker);
+        //setField(8, 4, bChecker);
         //for (size_t i = 8; i > 5; --i)
             //for (size_t j = 1; j <= 8; ++j)
                 //if ((i + j) % 2 == 0)

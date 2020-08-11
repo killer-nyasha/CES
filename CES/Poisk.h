@@ -8,19 +8,23 @@ public:
 
 	Turn selectTurn(M& model)
 	{
-		auto turnsW = model.getVariants();
+		auto p_turnsW = model.getVariants();
+		auto turnsW = *p_turnsW;
 
-		std::vector<std::pair<int, int>> results;
+		std::vector<float> results;
 
 		for (size_t i = 0; i < turnsW.size(); i++)
 		{
 			M modelCopy = model;
 			modelCopy.doTurn(turnsW[i]);
 
-			results.push_back(poisk(modelCopy));
+			auto pair = poisk(modelCopy);
+			results.push_back((float)pair.first / (float)pair.second);
 
 			std::cout << "yeah!";
 		}
+
+		return turnsW[0];
 	}
 
 	//����� � �������
