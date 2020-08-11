@@ -89,7 +89,7 @@ public:
 			}
 			else if (depth == maxDepth) //заканчиваем ветку
 			{
-				rating += (modelCopy.boardAnalize()+1)/3.0f;
+				rating += (-modelCopy.boardAnalize()+1)/3.0f;
 				maxRating += 1;
 			}
 			else

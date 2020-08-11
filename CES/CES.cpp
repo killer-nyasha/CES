@@ -16,13 +16,6 @@ int main()
 
     while (b.won() == -1)
     {
-        auto p_turnsW = b.getVariants();
-        auto turnsW = *p_turnsW;
-        DeepPoisk<decltype(b), Turn> ces;
-        b.doTurn(ces.selectTurn(b));
-        b.drawBoard();
-        Sleep(200);
-
         auto p_turnsB = b.getVariants();
         auto turnsB = *p_turnsB;
 
@@ -39,6 +32,13 @@ int main()
         else //bot
             b.doTurn(turnsB[turnsB.size() / 2]);
 
+        b.drawBoard();
+        Sleep(200);
+
+        auto p_turnsW = b.getVariants();
+        auto turnsW = *p_turnsW;
+        DeepPoisk<decltype(b), Turn> ces;
+        b.doTurn(ces.selectTurn(b));
         b.drawBoard();
         Sleep(200);
     }
