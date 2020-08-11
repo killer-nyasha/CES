@@ -80,7 +80,7 @@ public:
                 return res;
         }
 
-        else
+        //else
         {
             // проверяем не может ли шашка цвета ходящего побить кого-то
             // (бой обязательный, поэтому проверяется в первую очередь)
@@ -91,6 +91,8 @@ public:
                         auto turns = beatTurnVariants(i, j);
                         res.insert(res.end(), turns.begin(), turns.end());
                     }
+            if (res.size() && getColor(prevTurn.unit) == White)
+                std::cout << "5";
             if (res.size())
                 return res;
         }
