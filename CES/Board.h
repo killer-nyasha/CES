@@ -20,10 +20,8 @@ class Turn
     size_t unit = Field::empty;
     FieldPos from, to, ate;
 
-    //bool ate = false;
     bool willBecomeKing_ = false;
     Turn(){}
-
     Turn(size_t unit, FieldPos from, FieldPos to, FieldPos ate, bool willBecomeKing_)
         :unit(unit),from(from),to(to),ate(ate),willBecomeKing_(willBecomeKing_){}
 
@@ -41,6 +39,7 @@ public:
     {
         //init standart board (russian checkers)
 
+        wCheckers = 12, bCheckers = 12;
         for (size_t i = 1; i <= 3; ++i)
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0)
@@ -91,8 +90,6 @@ public:
                         auto turns = beatTurnVariants(i, j);
                         res.insert(res.end(), turns.begin(), turns.end());
                     }
-            if (res.size() && getColor(prevTurn.unit) == White)
-                std::cout << "5";
             if (res.size())
                 return res;
         }
@@ -109,13 +106,27 @@ public:
 
     void doTurn(Turn turn)
     {
-        setField(turn.from.x, turn.from.y, Field::empty);
-        if (turn.ate.x != 0 && turn.ate.y != 0) setField(turn.ate.x, turn.ate.y, empty);
-        if (!turn.willBecomeKing()) setField(turn.to.x, turn.to.y, turn.unit);
-        else setField(turn.to.x, turn.to.y, turn.unit + 2);
+        setField(turn.from.x, turn.from.y, empty);
+        if (turn.ate.x != 0 && turn.ate.y != 0) getColor(turn.ate.x, turn.ate.y) == White? wCheckers-- : bCheckers--, setField(turn.ate.x, turn.ate.y, empty);
+
+        if (wCheckers == 0) win = Black;
+        else if (bCheckers == 0) win = White;
+
+        if (!turn.willBecomeKing())
+            setField(turn.to.x, turn.to.y, turn.unit);
+        else
+        {
+            setField(turn.to.x, turn.to.y, turn.unit + 2);
+            win = getColor(turn.unit);
+        }
         prevTurn = turn;
     }
     
+    int won()
+    {
+        return win;
+    }
+
     typename std::bitset<X * Y / 2 * 3>::reference operator()(size_t x, size_t y, size_t bit = 1)
     {
         return board[(X * (x - 1) + (y - 1)) / 2 * 3 + bit - 1];
@@ -185,14 +196,20 @@ private:
 
     bool isEmpty(const size_t x, const size_t y) const
     {
-        return getField(x, y) == Field::empty;
+        return getField(x, y) == empty;
     }
 
-    void drawObject(const size_t object)
+    bool willBecomeKing(const size_t x, const size_t y, const size_t unit) const
+    {
+        return (isBlack(unit) && x == 1) || (isWhite(unit) && x == 8);
+    }
+
+    void drawObject(const size_t object) const 
     {
         if (object == empty) std::cout << "  ";
         else std::cout << object << " ";
     }
+
 
     std::vector<Turn> beatTurnVariants(const size_t x, const size_t y) const
     {
@@ -201,16 +218,16 @@ private:
         if (isChecker(x,y))
         {
             if (!outOfRange(x - 1, y - 1) && !outOfRange(x - 2, y - 2) && isUnit(x - 1, y - 1) && isEmpty(x - 2, y - 2) && getColor(x - 1, y - 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, { x - 1,y - 1 }, false));
+                res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, { x - 1,y - 1 }, willBecomeKing(x - 2, y - 2, unit)));
 
             if (!outOfRange(x - 1, y + 1) && !outOfRange(x - 2, y + 2) && isUnit(x - 1, y + 1) && isEmpty(x - 2, y + 2) && getColor(x - 1, y + 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x - 2,y + 2 }, { x - 1 ,y + 1 }, false));
+                res.push_back(Turn(unit, { x,y }, { x - 2,y + 2 }, { x - 1 ,y + 1 }, willBecomeKing(x - 2, y + 2, unit)));
 
             if (!outOfRange(x + 1, y - 1) && !outOfRange(x + 2, y - 2) && isUnit(x + 1, y - 1) && isEmpty(x + 2, y - 2) && getColor(x + 1, y - 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, { x + 1, y - 1 }, false));
+                res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, { x + 1, y - 1 }, willBecomeKing(x + 2, y - 2, unit)));
             
             if (!outOfRange(x + 1, y + 1) && !outOfRange(x + 2, y + 2) && isUnit(x + 1, y + 1) && isEmpty(x + 2, y + 2) && getColor(x + 1, y + 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, {x + 1, y + 1}, false));
+                res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, {x + 1, y + 1}, willBecomeKing(x + 2 , y + 2, unit)));
         }
 
         else if (isKing(x,y))
@@ -228,9 +245,9 @@ private:
         if (isChecker(x, y))
         {
             if (!outOfRange(x + isBlack, y - 1) && isEmpty(x + isBlack, y - 1))
-                res.push_back(Turn(unit, { x,y }, { x + isBlack,y - 1 }, { 0,0 }, false));
+                res.push_back(Turn(unit, { x,y }, { x + isBlack,y - 1 }, { 0,0 }, willBecomeKing(x + isBlack, y - 1, unit)));
             if (!outOfRange(x + isBlack, y + 1) && isEmpty(x + isBlack, y + 1))
-                res.push_back(Turn(unit, { x,y }, { x + isBlack,y + 1 }, { 0,0}, false));
+                res.push_back(Turn(unit, { x,y }, { x + isBlack,y + 1 }, { 0,0}, willBecomeKing(x + isBlack,y + 1,unit)));
         }
 
         else if (isKing(x, y))
@@ -249,4 +266,7 @@ private:
 
     std::bitset<X*Y/2* 3> board;
     Turn prevTurn;
+    int win = -1;
+
+    int wCheckers = 0, bCheckers = 0, wKing = 0, bKing = 0;
 };
