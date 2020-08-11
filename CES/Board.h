@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Enums.h"
+#include "Pools.h"
 
 template <typename const size_t X, const size_t Y>
 class Board;
@@ -21,9 +22,9 @@ class Turn
     FieldPos from, to, ate;
 
     bool willBecomeKing_ = false;
-    Turn(){}
+    Turn() {}
     Turn(size_t unit, FieldPos from, FieldPos to, FieldPos ate, bool willBecomeKing_)
-        :unit(unit),from(from),to(to),ate(ate),willBecomeKing_(willBecomeKing_){}
+        :unit(unit), from(from), to(to), ate(ate), willBecomeKing_(willBecomeKing_) {}
 
 public:
 
@@ -52,7 +53,7 @@ public:
 
         prevTurn.unit = bChecker;
     }
-    
+
     size_t getField(const size_t x, const size_t y) const
     {
         return getBitsByPos(x, y).to_ulong();
@@ -61,22 +62,25 @@ public:
     void setField(const size_t x, const size_t y, const size_t val)
     {
         std::bitset<3> bits(val);
-        (*this)(x,y,1) = bits[2];
+        (*this)(x, y, 1) = bits[2];
         (*this)(x, y, 2) = bits[1];
         (*this)(x, y, 3) = bits[0];
     }
 
-    std::vector<Turn> getVariants() const
+    PoolPointer<std::vector<Turn>> getVariants() const
     {
-        std::vector<Turn> res;
+        PoolPointer<std::vector<Turn>> p_res;
+        auto& res = *p_res;
+
+        //std::vector<Turn> res;
 
         // если в прошлом ходе шашка съела другую, то нужно проверить
         // не может ли она съесть ещё
         if (prevTurn.ate.x && prevTurn.ate.y)
         {
-            res = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
-            if (res.size())
-                return res;
+            auto best = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
+            if (best->size())
+                return std::move(best);
         }
 
         //else
@@ -88,26 +92,26 @@ public:
                     if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
                     {
                         auto turns = beatTurnVariants(i, j);
-                        res.insert(res.end(), turns.begin(), turns.end());
+                        res.insert(res.end(), turns->begin(), turns->end());
                     }
             if (res.size())
-                return res;
+                return std::move(p_res);
         }
 
         for (size_t i = 1; i <= 8; ++i)
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
                 {
-                    auto turns = turnVariants(i, j, getColor(i,j));
-                    res.insert(res.end(), turns.begin(), turns.end());
+                    auto turns = turnVariants(i, j, getColor(i, j));
+                    res.insert(res.end(), turns->begin(), turns->end());
                 }
-        return res;
+        return std::move(p_res);
     }
 
     void doTurn(Turn turn)
     {
         setField(turn.from.x, turn.from.y, empty);
-        if (turn.ate.x != 0 && turn.ate.y != 0) getColor(turn.ate.x, turn.ate.y) == White? wCheckers-- : bCheckers--, setField(turn.ate.x, turn.ate.y, empty);
+        if (turn.ate.x != 0 && turn.ate.y != 0) getColor(turn.ate.x, turn.ate.y) == White ? wCheckers-- : bCheckers--, setField(turn.ate.x, turn.ate.y, empty);
 
         if (wCheckers == 0) win = Black;
         else if (bCheckers == 0) win = White;
@@ -121,7 +125,7 @@ public:
         }
         prevTurn = turn;
     }
-    
+
     int won()
     {
         return win;
@@ -191,7 +195,7 @@ private:
 
     bool getColor(const size_t x, const size_t y) const
     {
-        return !isWhite(getField(x,y));
+        return !isWhite(getField(x, y));
     }
 
     bool isEmpty(const size_t x, const size_t y) const
@@ -204,18 +208,20 @@ private:
         return (isBlack(unit) && x == 1) || (isWhite(unit) && x == 8);
     }
 
-    void drawObject(const size_t object) const 
+    void drawObject(const size_t object) const
     {
         if (object == empty) std::cout << "  ";
         else std::cout << object << " ";
     }
 
 
-    std::vector<Turn> beatTurnVariants(const size_t x, const size_t y) const
+    PoolPointer<std::vector<Turn>> beatTurnVariants(const size_t x, const size_t y) const
     {
-        std::vector<Turn> res;
+        PoolPointer<std::vector<Turn>> p_res;
+        auto& res = *p_res;
+
         size_t unit = getField(x, y);
-        if (isChecker(x,y))
+        if (isChecker(x, y))
         {
             if (!outOfRange(x - 1, y - 1) && !outOfRange(x - 2, y - 2) && isUnit(x - 1, y - 1) && isEmpty(x - 2, y - 2) && getColor(x - 1, y - 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, { x - 1,y - 1 }, willBecomeKing(x - 2, y - 2, unit)));
@@ -225,36 +231,39 @@ private:
 
             if (!outOfRange(x + 1, y - 1) && !outOfRange(x + 2, y - 2) && isUnit(x + 1, y - 1) && isEmpty(x + 2, y - 2) && getColor(x + 1, y - 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, { x + 1, y - 1 }, willBecomeKing(x + 2, y - 2, unit)));
-            
+
             if (!outOfRange(x + 1, y + 1) && !outOfRange(x + 2, y + 2) && isUnit(x + 1, y + 1) && isEmpty(x + 2, y + 2) && getColor(x + 1, y + 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, {x + 1, y + 1}, willBecomeKing(x + 2 , y + 2, unit)));
-        }
-
-        else if (isKing(x,y))
-        {
-            // v pizdu...
-        }
-        return res;
-    }
-
-    std::vector<Turn> turnVariants(const size_t x, const size_t y, bool black) const
-    {
-        int isBlack = black ? -1 : 1;
-        std::vector<Turn> res;
-        size_t unit = getField(x, y);
-        if (isChecker(x, y))
-        {
-            if (!outOfRange(x + isBlack, y - 1) && isEmpty(x + isBlack, y - 1))
-                res.push_back(Turn(unit, { x,y }, { x + isBlack,y - 1 }, { 0,0 }, willBecomeKing(x + isBlack, y - 1, unit)));
-            if (!outOfRange(x + isBlack, y + 1) && isEmpty(x + isBlack, y + 1))
-                res.push_back(Turn(unit, { x,y }, { x + isBlack,y + 1 }, { 0,0}, willBecomeKing(x + isBlack,y + 1,unit)));
+                res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, { x + 1, y + 1 }, willBecomeKing(x + 2, y + 2, unit)));
         }
 
         else if (isKing(x, y))
         {
             // v pizdu...
         }
-        return res;
+        return std::move(p_res);
+    }
+
+    PoolPointer<std::vector<Turn>> turnVariants(const size_t x, const size_t y, bool black) const
+    {
+        int isBlack = black ? -1 : 1;
+
+        PoolPointer<std::vector<Turn>> p_res;
+        auto& res = *p_res;
+
+        size_t unit = getField(x, y);
+        if (isChecker(x, y))
+        {
+            if (!outOfRange(x + isBlack, y - 1) && isEmpty(x + isBlack, y - 1))
+                res.push_back(Turn(unit, { x,y }, { x + isBlack,y - 1 }, { 0,0 }, willBecomeKing(x + isBlack, y - 1, unit)));
+            if (!outOfRange(x + isBlack, y + 1) && isEmpty(x + isBlack, y + 1))
+                res.push_back(Turn(unit, { x,y }, { x + isBlack,y + 1 }, { 0,0 }, willBecomeKing(x + isBlack, y + 1, unit)));
+        }
+
+        else if (isKing(x, y))
+        {
+            // v pizdu...
+        }
+        return p_res;
     }
 
     template <typename T>
@@ -264,7 +273,7 @@ private:
             to.push_back(from);
     }
 
-    std::bitset<X*Y/2* 3> board;
+    std::bitset<X * Y / 2 * 3> board;
     Turn prevTurn;
     int win = -1;
 
