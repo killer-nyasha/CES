@@ -12,7 +12,7 @@ int main()
         b.drawBoard();
         auto turns = b.getVariants();
         b.doTurn(turns[turns.size()/2]);
-        Sleep(1500);
+        Sleep(200);
     }
     std::cout << "\n end of game!\n";
 }
