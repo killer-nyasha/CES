@@ -11,20 +11,20 @@ class Board;
 
 struct FieldPos
 {
-    size_t x, y;
+    size_t x = 0, y = 0;
 };
 
 class Turn
 {
     friend Board<8, 8>;
     size_t unit = Field::empty;
-    FieldPos from, to;
+    FieldPos from, to, ate;
 
-    bool ate = false;
+    //bool ate = false;
     bool willBecomeKing_ = false;
     Turn(){}
 
-    Turn(size_t unit, FieldPos from, FieldPos to, bool ate, bool willBecomeKing_)
+    Turn(size_t unit, FieldPos from, FieldPos to, FieldPos ate, bool willBecomeKing_)
         :unit(unit),from(from),to(to),ate(ate),willBecomeKing_(willBecomeKing_){}
 
 public:
@@ -73,7 +73,7 @@ public:
 
         // если в прошлом ходе шашка съела другую, то нужно проверить
         // не может ли она съесть ещё
-        if (prevTurn.ate)
+        if (prevTurn.ate.x && prevTurn.ate.y)
         {
             res = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
             if (res.size())
@@ -99,7 +99,7 @@ public:
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
                 {
-                    auto turns = turnVariants(i, j);
+                    auto turns = turnVariants(i, j, getColor(i,j));
                     res.insert(res.end(), turns.begin(), turns.end());
                 }
         return res;
@@ -107,15 +107,31 @@ public:
 
     void doTurn(Turn turn)
     {
-        prevTurn = turn;
         setField(turn.from.x, turn.from.y, Field::empty);
+        if (turn.ate.x != 0 && turn.ate.y != 0) setField(turn.ate.x, turn.ate.y, empty);
         if (!turn.willBecomeKing()) setField(turn.to.x, turn.to.y, turn.unit);
         else setField(turn.to.x, turn.to.y, turn.unit + 2);
+        prevTurn = turn;
     }
     
     typename std::bitset<X * Y / 2 * 3>::reference operator()(size_t x, size_t y, size_t bit = 1)
     {
         return board[(X * (x - 1) + (y - 1)) / 2 * 3 + bit - 1];
+    }
+
+    void drawBoard()
+    {
+        system("cls");
+        std::cout << "\n\n\n\n\n\n\n";
+        for (size_t i = 8; i >= 1; --i)
+        {
+            std::cout << "\n                                                  ";
+            for (size_t j = 1; j <= 8; ++j)
+            {
+                if ((i + j) % 2 == 0) drawObject(getField(i, j));
+                else std::cout << "  ";
+            }
+        }
     }
 
 private:
@@ -170,20 +186,29 @@ private:
         return getField(x, y) == Field::empty;
     }
 
+    void drawObject(const size_t object)
+    {
+        if (object == empty) std::cout << "  ";
+        else std::cout << object << " ";
+    }
+
     std::vector<Turn> beatTurnVariants(const size_t x, const size_t y) const
     {
         std::vector<Turn> res;
         size_t unit = getField(x, y);
         if (isChecker(x,y))
         {
-            if ((!outOfRange(x - 1, y - 1) ? isUnit(x - 1, y - 1) : false() && (!outOfRange(x - 2, y - 2) ? !isUnit(x - 2, y - 2) : false())) && getColor(x-1,y-1)!=getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, true, false));
-            if ((!outOfRange(x - 1, y + 1) ? isUnit(x - 1, y + 1) : false() && (!outOfRange(x - 2, y + 2) ? !isUnit(x - 2, y + 2) : false())) && getColor(x - 1, y + 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x - 2,y + 2 }, true, false));
-            if ((!outOfRange(x + 1, y - 1) ? isUnit(x + 1, y - 1) : false() && (!outOfRange(x + 2, y - 2) ? !isUnit(x + 2, y - 2) : false())) && getColor(x + 1, y - 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, true, false));
-            if ((!outOfRange(x + 1, y + 1) ? isUnit(x + 1, y + 1) : false() && (!outOfRange(x + 2, y + 2) ? !isUnit(x + 2, y + 2) : false())) && getColor(x + 1, y + 1) != getColor(unit))
-                res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, true, false));
+            if (!outOfRange(x - 1, y - 1) && !outOfRange(x - 2, y - 2) && isUnit(x - 1, y - 1) && isEmpty(x - 2, y - 2) && getColor(x - 1, y - 1) != getColor(unit))
+                res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, { x - 1,y - 1 }, false));
+
+            if (!outOfRange(x - 1, y + 1) && !outOfRange(x - 2, y + 2) && isUnit(x - 1, y + 1) && isEmpty(x - 2, y + 2) && getColor(x - 1, y + 1) != getColor(unit))
+                res.push_back(Turn(unit, { x,y }, { x - 2,y + 2 }, { x - 1 ,y + 1 }, false));
+
+            if (!outOfRange(x + 1, y - 1) && !outOfRange(x + 2, y - 2) && isUnit(x + 1, y - 1) && isEmpty(x + 2, y - 2) && getColor(x + 1, y - 1) != getColor(unit))
+                res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, { x + 1, y - 1 }, false));
+            
+            if (!outOfRange(x + 1, y + 1) && !outOfRange(x + 2, y + 2) && isUnit(x + 1, y + 1) && isEmpty(x + 2, y + 2) && getColor(x + 1, y + 1) != getColor(unit))
+                res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, {x + 1, y + 1}, false));
         }
 
         else if (isKing(x,y))
@@ -193,16 +218,17 @@ private:
         return res;
     }
 
-    std::vector<Turn> turnVariants(const size_t x, const size_t y) const
+    std::vector<Turn> turnVariants(const size_t x, const size_t y, bool black) const
     {
+        int isBlack = black ? -1 : 1;
         std::vector<Turn> res;
         size_t unit = getField(x, y);
         if (isChecker(x, y))
         {
-            if (!outOfRange(x + 1, y - 1) && isEmpty(x + 1, y - 1))
-                res.push_back(Turn(unit, { x,y }, { x + 1,y - 1 }, false, false));
-            if (!outOfRange(x + 1, y + 1) && isEmpty(x + 1, y + 1))
-                res.push_back(Turn(unit, { x,y }, { x + 1,y + 1 }, false, false));
+            if (!outOfRange(x + isBlack, y - 1) && isEmpty(x + isBlack, y - 1))
+                res.push_back(Turn(unit, { x,y }, { x + isBlack,y - 1 }, { 0,0 }, false));
+            if (!outOfRange(x + isBlack, y + 1) && isEmpty(x + isBlack, y + 1))
+                res.push_back(Turn(unit, { x,y }, { x + isBlack,y + 1 }, { 0,0}, false));
         }
 
         else if (isKing(x, y))

@@ -1,11 +1,17 @@
 ﻿#include "Board.h"
+#include <ctime>
+#include <Windows.h>
 
 int main()
 {
+    srand(time(NULL));
     Board<8,8> b;
     std::cout << b.getVariants().size() << " possible turns\n";
-    //for (size_t i = 1; i <= 8; ++i)
-    //    for (size_t j = 1; j <=8; ++j)
-    //        if ((i+j)%2==0) std::cout << b.getField(i, j) << '\n';
-    //b(1, 1);
+    while (true)
+    {
+        b.drawBoard();
+        auto turns = b.getVariants();
+        b.doTurn(turns[0]);
+        Sleep(1200);
+    }
 }
