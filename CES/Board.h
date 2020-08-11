@@ -154,7 +154,35 @@ public:
         }
     }
 
+    float boardAnalize()
+    {
+        return playerAnalize(Black) + playerAnalize(White) / etalon;
+    }
+
 private:
+
+    const float checkerValue = 28.0f;
+    const float powerPosValue = 6.0f;
+    const float weakPosValue = -1.2f;
+
+    const float etalon = 338.4f;
+
+    float playerAnalize(bool color)
+    {
+        float res = color == Black ? bCheckers * checkerValue : wCheckers * checkerValue;
+        if (getColor(4, 6) == color) res += powerPosValue;
+        if (getColor(5, 3) == color) res += powerPosValue;
+
+        if (getColor(1, 1) == color) res += weakPosValue;
+        if (getColor(3, 1) == color) res += weakPosValue;
+        if (getColor(5, 1) == color) res += weakPosValue;
+        if (getColor(7, 1) == color) res += weakPosValue;
+        if (getColor(2, 8) == color) res += weakPosValue;
+        if (getColor(4, 8) == color) res += weakPosValue;
+        if (getColor(6, 8) == color) res += weakPosValue;
+        if (getColor(8, 8) == color) res += weakPosValue;
+        return color == Black ? -res : res;
+    }
 
     std::bitset<3> getBitsByPos(const size_t x, const size_t y) const
     {
