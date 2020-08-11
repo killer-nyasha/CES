@@ -12,6 +12,8 @@ int main()
 
     b.drawBoard();
 
+    //жывтоне чочо упячка
+
     while (b.won() == -1)
     {
         auto p_turnsW = b.getVariants();
