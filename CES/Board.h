@@ -87,13 +87,17 @@ public:
         // не может ли она съесть ещё
         if (prevTurn.ate.x && prevTurn.ate.y)
         {
+            //currentTurn = getColor(prevTurn.unit);
             auto best = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
             if (best->size())
+            {
+                currentTurn = getColor(prevTurn.unit);
                 return std::move(best);
+            }
         }
 
-        else
-            currentTurn = currentTurn == White ? Black : White;
+        //else
+            //currentTurn = currentTurn == White ? Black : White;
 
         //else
         {
@@ -135,6 +139,7 @@ public:
             setField(turn.to.x, turn.to.y, turn.unit + 2);
             win = getColor(turn.unit);
         }
+        switchTurn();
         prevTurn = turn;
     }
 
@@ -263,6 +268,11 @@ private:
     {
         if (object == empty) std::cout << "  ";
         else std::cout << object << " ";
+    }
+
+    void switchTurn()
+    {
+        currentTurn = currentTurn == Black ? White : Black;
     }
 
     PoolPointer<std::vector<Turn>> beatTurnVariants(const size_t x, const size_t y) const

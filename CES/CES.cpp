@@ -16,6 +16,7 @@ int main()
 
     while (b.won() == -1)
     {
+        std::cout << b.whoseTurn() << "\n";
         if (b.whoseTurn() == White)
         {
             auto p_turnsB = b.getVariants();
