@@ -39,16 +39,19 @@ public:
     {
         //init standart board (russian checkers)
 
-        wCheckers = 12, bCheckers = 12;
-        for (size_t i = 1; i <= 3; ++i)
-            for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0)
-                    setField(i, j, wChecker);
-
-        for (size_t i = 8; i > 5; --i)
-            for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0)
-                    setField(i, j, bChecker);
+        wCheckers = 2, bCheckers = 2;
+        //for (size_t i = 1; i <= 3; ++i)
+            //for (size_t j = 1; j <= 8; ++j)
+                //if ((i + j) % 2 == 0)
+                    //setField(i, j, wChecker);
+        setField(1, 1, wChecker);
+        setField(1, 3, wChecker);
+        setField(8, 2, bChecker);
+        setField(8, 4, bChecker);
+        //for (size_t i = 8; i > 5; --i)
+            //for (size_t j = 1; j <= 8; ++j)
+                //if ((i + j) % 2 == 0)
+                    //setField(i, j, bChecker);
 
         prevTurn.unit = bChecker;
     }
@@ -196,12 +199,12 @@ private:
 
     bool isEmpty(const size_t x, const size_t y) const
     {
-        return getField(x, y) == empty;
+        return getField(x, y) == Field::empty;
     }
 
     bool willBecomeKing(const size_t x, const size_t y, const size_t unit) const
     {
-        return (isBlack(unit) && x == 1) || (isWhite(unit) && x == 8);
+        return (isBlack(unit) && x == 8) || (isWhite(unit) && x == 1);
     }
 
     void drawObject(const size_t object) const 
