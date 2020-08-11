@@ -76,7 +76,7 @@ public:
         (*this)(x, y, 3) = bits[0];
     }
 
-    PoolPointer<std::vector<Turn>> getVariants() const
+    PoolPointer<std::vector<Turn>> getVariants()
     {
         PoolPointer<std::vector<Turn>> p_res;
         auto& res = *p_res;
@@ -91,6 +91,9 @@ public:
             if (best->size())
                 return std::move(best);
         }
+
+        else
+            currentTurn = currentTurn == White ? Black : White;
 
         //else
         {
@@ -169,6 +172,11 @@ public:
     float boardAnalize()
     {
         return playerAnalize(Black) + playerAnalize(White) / etalon;
+    }
+
+    bool whoseTurn() const
+    {
+        return currentTurn;
     }
 
 private:
@@ -257,7 +265,6 @@ private:
         else std::cout << object << " ";
     }
 
-
     PoolPointer<std::vector<Turn>> beatTurnVariants(const size_t x, const size_t y) const
     {
         PoolPointer<std::vector<Turn>> p_res;
@@ -321,4 +328,6 @@ private:
     int win = -1;
 
     int wCheckers = 0, bCheckers = 0, wKing = 0, bKing = 0;
+
+    bool currentTurn = White;
 };
