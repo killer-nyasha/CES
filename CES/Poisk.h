@@ -89,7 +89,7 @@ public:
 			}
 			else if (depth == maxDepth) //заканчиваем ветку
 			{
-				rating += (-modelCopy.boardAnalize()+1)/3.0f;
+				rating += (-modelCopy.boardAnalize()+1)/5.0f;
 				maxRating += 1;
 			}
 			else
@@ -97,6 +97,9 @@ public:
 				auto r = poisk2(modelCopy, maxDepth, depth + 1);
 				rating += r.first;
 				maxRating += r.second;
+
+				rating /= maxRating;
+				maxRating /= maxRating;
 			}
 		}
 
