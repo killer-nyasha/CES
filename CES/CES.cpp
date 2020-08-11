@@ -26,13 +26,6 @@ int main()
         auto turnsB = *p_turnsB;
         b.doTurn(turnsB[turnsB.size() / 2]);
         b.drawBoard();
-<<<<<<< HEAD
         Sleep(200);
-=======
-        auto turns = b.getVariants();
-        b.doTurn(turns[turns.size()/2]);
-        Sleep(200);
-    }
->>>>>>> parent of cfdd562... [DUMMY] 2x2
     std::cout << "\n end of game!\n";
 }
