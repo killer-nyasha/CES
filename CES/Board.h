@@ -176,7 +176,8 @@ public:
 
     float boardAnalize()
     {
-        return playerAnalize(Black) + playerAnalize(White) / etalon;
+        etalon = bCheckers * checkerValue + wCheckers * checkerValue + 2 * powerPosValue - 8 * weakPosValue;
+        return (playerAnalize(Black) + playerAnalize(White)) / etalon;
     }
 
     bool whoseTurn() const
@@ -186,11 +187,11 @@ public:
 
 private:
 
-    const float checkerValue = 28.0f;
-    const float powerPosValue = 6.0f;
-    const float weakPosValue = -1.2f;
+    const float checkerValue = 27.0f;
+    const float powerPosValue = 5.0f;
+    const float weakPosValue = -1.0f;
 
-    const float etalon = 338.4f;
+    float etalon = bCheckers * checkerValue + wCheckers* checkerValue + 2* powerPosValue - 8* weakPosValue;
 
     float playerAnalize(bool color)
     {
