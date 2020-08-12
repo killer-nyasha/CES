@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <vector>
 
+#define AI_PLAYER 1
+
 template <typename M, typename T>
 class DeepPoisk
 {
@@ -83,13 +85,13 @@ public:
 			if (modelCopy.won() != -1)
 			{
 				//std::cout << "end at " << depth << "\n";
-				if (modelCopy.won() == 0)
+				if (modelCopy.won() == AI_PLAYER)
 					rating += 1;
 				maxRating += 1;
 			}
 			else if (depth == maxDepth) //заканчиваем ветку
 			{
-				rating += (-modelCopy.boardAnalize()+1)/5.0f;
+				rating += ((AI_PLAYER == 1 ? -1 : 1) * modelCopy.boardAnalize()+1)/5.0f;
 				maxRating += 1;
 			}
 			else

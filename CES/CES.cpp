@@ -22,7 +22,7 @@ int main()
             if (b.whoseTurn() == Black) continue;
             auto turnsB = *p_turnsB;
 
-            if (true) //human
+            if (false) //human
             {
                 std::cout << "\n";
                 for (size_t i = 0; i < turnsB.size(); i++)
