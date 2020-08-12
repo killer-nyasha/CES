@@ -16,10 +16,10 @@ int main()
 
     while (b.won() == -1)
     {
-        std::cout << b.whoseTurn() << "\n";
         if (b.whoseTurn() == White)
         {
             auto p_turnsB = b.getVariants();
+            if (b.whoseTurn() == Black) continue;
             auto turnsB = *p_turnsB;
 
             if (true) //human
@@ -41,6 +41,7 @@ int main()
         else
         {
             auto p_turnsW = b.getVariants();
+            if (b.whoseTurn() == White) continue;
             auto turnsW = *p_turnsW;
             DeepPoisk<decltype(b), Turn> ces;
             b.doTurn(ces.selectTurn(b));

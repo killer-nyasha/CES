@@ -19,7 +19,7 @@ class Turn
 {
     friend Board<8, 8>;
     size_t unit = Field::empty;
-    FieldPos from, to, ate;
+    FieldPos from = { 0, 0 }, to = { 0, 0 }, ate = { 0, 0};
 
     bool willBecomeKing_ = false;
     Turn() {}
