@@ -38,7 +38,7 @@ void tick()
             auto p_turnsW = b.getVariants();
             if (b.whoseTurn() == White) continue;
             auto turnsW = *p_turnsW;
-            DeepPoisk<decltype(b), Turn> ces(&app);
+            DeepPoisk<decltype(b), Turn> ces;
             b.doTurn(ces.selectTurn(b), &app);
         }
         //b.drawBoard();
