@@ -4,18 +4,15 @@
 #include "Board.h"
 #include "Poisk.h"
 
-int main()
+#include "LGApp.h"
+
+LGraphics::LGApp app;
+void tick()
 {
-    srand(time(NULL));
-    Board<8,8> b;
-    //std::cout << b.getVariants().size() << " possible turns\n";
-
-    b.drawBoard();
-
-    //жывтоне чочо упячка
-
+    Board<8, 8> b;
     while (b.won() == -1)
     {
+        Sleep(300);
         if (b.whoseTurn() == White)
         {
             auto p_turnsB = b.getVariants();
@@ -30,24 +27,28 @@ int main()
 
                 int i2;
                 std::cin >> i2;
-                b.doTurn(turnsB[i2]);
+                b.doTurn(turnsB[i2],&app);
             }
             else //bot
-                b.doTurn(turnsB[turnsB.size() / 2]);
-
-            b.drawBoard();
-            Sleep(200);
+                b.doTurn(turnsB[turnsB.size() / 2], &app);
         }
+
         else
         {
             auto p_turnsW = b.getVariants();
             if (b.whoseTurn() == White) continue;
             auto turnsW = *p_turnsW;
-            DeepPoisk<decltype(b), Turn> ces;
-            b.doTurn(ces.selectTurn(b));
-            b.drawBoard();
-            Sleep(200);
+            DeepPoisk<decltype(b), Turn> ces(&app);
+            b.doTurn(ces.selectTurn(b), &app);
         }
+        //b.drawBoard();
     }
+}
+
+
+int main()
+{
+    app.setTick(tick);
+    app.loop();
     std::cout << "\n end of game!\n";
 }

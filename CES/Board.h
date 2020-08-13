@@ -7,6 +7,15 @@
 #include "Enums.h"
 #include "Pools.h"
 
+#include "LGApp.h"
+#include "LApp.h"
+#include "LIRectangle.h"
+#include "LIButton.h"
+#include "LBaseComponent.h"
+#include "LTextEdit.h"
+#include "additional.h"
+#include <cmath>
+
 template <typename const size_t X, const size_t Y>
 class Board;
 
@@ -124,16 +133,37 @@ public:
         return std::move(p_res);
     }
 
+    void doTurn(Turn turn, LGraphics::LGApp* app)
+    {
+        doTurn(turn);
+        setField(turn.from.x, turn.from.y, empty);
+        if (turn.ate.x != 0 && turn.ate.y != 0)
+            app->deleteByPos(turn.ate.x, turn.ate.y);
+
+        if (!turn.willBecomeKing())
+            app->moveToPos(turn.from.x, turn.from.y, turn.to.x, turn.to.y);
+        else
+            app->moveToPos(turn.from.x, turn.from.y, turn.to.x, turn.to.y);
+            // нужно поменять текстуру на дамку
+    }
+
     void doTurn(Turn turn)
     {
         setField(turn.from.x, turn.from.y, empty);
-        if (turn.ate.x != 0 && turn.ate.y != 0) getColor(turn.ate.x, turn.ate.y) == White ? wCheckers-- : bCheckers--, setField(turn.ate.x, turn.ate.y, empty);
+
+
+        if (turn.ate.x != 0 && turn.ate.y != 0)
+        {
+            getColor(turn.ate.x, turn.ate.y) == White ? wCheckers-- : bCheckers--;
+            setField(turn.ate.x, turn.ate.y, empty);
+        }
 
         if (wCheckers == 0) win = Black;
         else if (bCheckers == 0) win = White;
 
         if (!turn.willBecomeKing())
             setField(turn.to.x, turn.to.y, turn.unit);
+
         else
         {
             setField(turn.to.x, turn.to.y, turn.unit + 2);
@@ -192,6 +222,11 @@ private:
     const float weakPosValue = -1.0f;
 
     float etalon = bCheckers * checkerValue + wCheckers* checkerValue + 2* powerPosValue - 8* weakPosValue;
+
+    void initDrawing()
+    {
+
+    }
 
     float playerAnalize(bool color)
     {
