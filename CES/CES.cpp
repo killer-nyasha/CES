@@ -7,32 +7,45 @@
 #include "LGApp.h"
 
 LGraphics::LGApp app;
+
+
+Turn* findTurn(std::vector<Turn>& pool, LGraphics::LGApp::TryTurn turn)
+{
+    for (auto& t : pool)
+        if (t.from == turn.from && t.to == turn.to)
+            return &t;
+    return nullptr;
+}
+
 void tick()
 {
     Board<8, 8> b;
+    bool player = true;
     while (b.won() == -1)
     {
-        Sleep(300);
         if (b.whoseTurn() == White)
         {
             auto p_turnsB = b.getVariants();
             if (b.whoseTurn() == Black) continue;
             auto turnsB = *p_turnsB;
 
-            if (false) //human
+            if (player) //human
             {
-                std::cout << "\n";
-                for (size_t i = 0; i < turnsB.size(); i++)
-                    std::cout << i << ": " << turnsB[i] << "\n";
+                app.playerTurn = true;
 
-                int i2;
-                std::cin >> i2;
-                b.doTurn(turnsB[i2],&app);
+                // choose turn
+                while (app.turnTodo.from == szvect2{ 0,0 });
+                Turn* turn;
+                if (turn = findTurn(turnsB, app.turnTodo))
+                {
+                    b.doTurn(*turn, &app);
+                    app.turnTodo.from = { 0,0 };
+                }
+                else continue;
             }
             else //bot
                 b.doTurn(turnsB[turnsB.size() / 2], &app);
         }
-
         else
         {
             auto p_turnsW = b.getVariants();
@@ -41,7 +54,7 @@ void tick()
             DeepPoisk<decltype(b), Turn> ces;
             b.doTurn(ces.selectTurn(b), &app);
         }
-        //b.drawBoard();
+        Sleep(300);
     }
 }
 

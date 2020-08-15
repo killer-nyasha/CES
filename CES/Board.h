@@ -14,36 +14,28 @@
 #include "LBaseComponent.h"
 #include "LTextEdit.h"
 #include "additional.h"
+#include "LGApp.h"
 #include <cmath>
 
 template <typename const size_t X, const size_t Y>
 class Board;
 
-struct FieldPos
-{
-    size_t x = 0, y = 0;
-};
-
 class Turn
 {
     friend Board<8, 8>;
+    friend LGraphics::LGApp;
+
     size_t unit = Field::empty;
-    FieldPos from = { 0, 0 }, to = { 0, 0 }, ate = { 0, 0};
 
     bool willBecomeKing_ = false;
-    Turn() {}
-    Turn(size_t unit, FieldPos from, FieldPos to, FieldPos ate, bool willBecomeKing_)
+    Turn(size_t unit, szvect2 from, szvect2 to, szvect2 ate, bool willBecomeKing_)
         :unit(unit), from(from), to(to), ate(ate), willBecomeKing_(willBecomeKing_) {}
 
 public:
 
+    szvect2 from = { 0, 0 }, to = { 0, 0 }, ate = { 0, 0 };
+    Turn() {}
     bool willBecomeKing() const { return willBecomeKing_; }
-
-    friend std::ostream& operator<<(std::ostream& cout, const Turn& t)
-    {
-        cout << (char)('a'-1+t.from.y) << t.from.x << " " << (char)('a' - 1 + t.to.y) << t.to.x;
-        return cout;
-    }
 };
 
 template <typename const size_t X, const size_t Y>
@@ -60,10 +52,7 @@ public:
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0)
                     setField(i, j, wChecker);
-        //setField(1, 3, wChecker);
-        //setField(1, 5, wChecker);
-        //setField(8, 2, bChecker);
-        //setField(8, 4, bChecker);
+
         for (size_t i = 8; i > 5; --i)
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0)
@@ -144,6 +133,7 @@ public:
             app->moveToPos(turn.from.x, turn.from.y, turn.to.x, turn.to.y);
         else
             app->moveToPos(turn.from.x, turn.from.y, turn.to.x, turn.to.y);
+        app->app.setActiveWidget(nullptr);
             // нужно поменять текстуру на дамку
     }
 

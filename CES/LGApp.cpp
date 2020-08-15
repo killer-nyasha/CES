@@ -7,11 +7,11 @@ namespace LGraphics
 {
     ivect2 LGApp::getPosByCoords(szvect2 screenSize, GLFWwindow* wnd, fvect3 coords)
     {
-        auto mouseGl = pointOnScreenToGlCoords(fvect2(screenSize), { coords.x ,coords.y });
+        //auto mouseGl = pointOnScreenToGlCoords(fvect2(screenSize), { coords.x ,coords.y });
         auto firstPosition = fvect3{ board->getBottomLeftCorner().x + 0.185f, board->getBottomLeftCorner().y + 0.26f, board->getBottomLeftCorner().z };
         auto dist = (board->getBottomLeftCorner() - board->getBottomRightCorner()) / 10.0f;
         dist.y -= 0.172f;
-        return { (int)floor((firstPosition.x + dist.x / 2 - mouseGl.x) / dist.x) + 1 ,(int)floor((firstPosition.y + dist.y / 2 - mouseGl.y) / dist.y) + 1 };
+        return { (int)floor((firstPosition.x + dist.x / 2 - coords.x) / dist.x) + 1 ,(int)floor((firstPosition.y + dist.y / 2 - coords.y) / dist.y) + 1 };
     }
 
     fvect3 LGApp::getCoordsByPosition(size_t x, size_t y)
@@ -67,14 +67,17 @@ namespace LGraphics
 
         board->setClickEventFunction([&]()
         {
+            if (!playerTurn) return;
             if (prevActiveWidget && prevActiveWidget != board)
             {
                 double mouse_x, mouse_y;
                 glfwGetCursorPos(app.getWindowHandler(), &mouse_x, &mouse_y);
-                auto pos = getPosByCoords(app.getWindowSize(), app.getWindowHandler(), { (float)mouse_x, (float)mouse_y, 1.0f });
+                auto pos = getPosByCoords(app.getWindowSize(), app.getWindowHandler(), pointOnScreenToGlCoords(app.getWindowSize(),{ (float)mouse_x, (float)mouse_y, 1.0f }));
                 if (pos.x >= 1 && pos.x <= 8 && pos.y >= 1 && pos.y <= 8 && (pos.x + pos.y) % 2 == 0)
                 {
-                    moveToPos(prevActiveWidget, pos.y, pos.x);
+                    auto coordsFrom = getPosByCoords(app.getWindowSize(), app.getWindowHandler(), prevActiveWidget->getMove());
+                    turnTodo.from.x = coordsFrom.y, turnTodo.from.y = coordsFrom.x;
+                    turnTodo.to.x = pos.y, turnTodo.to.y = pos.x;
                     app.setActiveWidget(prevActiveWidget);
                 }
             }
@@ -94,85 +97,48 @@ namespace LGraphics
 
         size_t counter = 0;
 
-        for (size_t i = 1; i <= 3; ++i)
+        auto animFunf = [&]()
         {
-            for (size_t j = 1; j <= 8; ++j)
+            if (!playerTurn)
             {
-                if ((i + j) % 2 == 0)
-                {
-                    auto coords = getCoordsByPosition(i, j);
-                    white[counter]->scale(0.09f, 0.16f, 1.0f);
-                    white[counter]->turnOffColor();
-
-                    white[counter]->setClickEventFunction(
-                        [&]()
-                    {
-                        prevActiveWidget = app.getActiveWidget();
-                    });
-
-                    white[counter]->setAnimation([&]()
-                    {
-                        static bool fading = true;
-                        if (app.getActiveWidget()->getTransparency() <= 0.25f)
-                            fading = false;
-                        else if (app.getActiveWidget()->getTransparency() >= 0.85f)
-                            fading = true;
-                        if (fading)
-                            app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() - 0.015f);
-                        else if (!fading)
-                            app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() + 0.015f);
-                    });
-
-                    white[counter]->setBreakingAnimation([&]()
-                    {
-                        app.getActiveWidget()->transparency(1.0f);
-                    });
-
-                    moveToPos(white[counter], i, j);
-                    ++counter;
-                }
+                app.getActiveWidget()->breakAnimation();
+                return;
             }
-        }
+            static bool fading = true;
+            if (app.getActiveWidget()->getTransparency() <= 0.25f)
+                fading = false;
+            else if (app.getActiveWidget()->getTransparency() >= 0.85f)
+                fading = true;
+            if (fading)
+                app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() - 0.015f);
+            else if (!fading)
+                app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() + 0.015f);
+        };
 
+        auto clickEventf = [&]() { prevActiveWidget = app.getActiveWidget(); };
+        auto breakAnimf = [&]() {app.getActiveWidget()->transparency(1.0f);};
+
+        auto initObj = [&](LIButton* w,size_t i, size_t j)
+        {
+            auto coords = getCoordsByPosition(i, j);
+            w->scale(0.09f, 0.16f, 1.0f);
+            w->turnOffColor();
+            w->setClickEventFunction(clickEventf);
+            w->setAnimation(animFunf);
+            w->setBreakingAnimation(breakAnimf);
+            moveToPos(w, i, j);
+            ++counter;
+        };
+
+        for (size_t i = 1; i <= 3; ++i)
+            for (size_t j = 1; j <= 8; ++j)
+                if ((i + j) % 2 == 0)
+                    initObj(white[counter], i, j);
         counter = 0;
         for (size_t i = 8; i >= 6; i--)
-        {
             for (size_t j = 1; j <= 8; ++j)
-            {
                 if ((i + j) % 2 == 0)
-                {
-                    auto coords = getCoordsByPosition(i, j);
-                    black[counter]->scale(0.09f, 0.16f, 1.0f);
-                    black[counter]->turnOffColor();
-                    black[counter]->setClickEventFunction(
-                        [&]()
-                    {
-                        prevActiveWidget = app.getActiveWidget();
-                    });
-
-                    black[counter]->setAnimation([&]()
-                    {
-                        static bool fading = true;
-                        if (app.getActiveWidget()->getTransparency() <= 0.25f)
-                            fading = false;
-                        else if (app.getActiveWidget()->getTransparency() >= 0.85f)
-                            fading = true;
-                        if (fading)
-                            app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() - 0.015f);
-                        else if (!fading)
-                            app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() + 0.015f);
-                    });
-
-                    black[counter]->setBreakingAnimation([&]()
-                    {
-                        app.getActiveWidget()->transparency(1.0f);
-                    });
-
-                    moveToPos(black[counter], i, j);
-                    ++counter;
-                }
-            }
-        }
+                    initObj(black[counter], i, j);
     }
 
     LGApp::LGApp()
