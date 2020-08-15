@@ -343,13 +343,14 @@ CMakeFiles/
 build64/
 LizardGraphics/CMakeFiles
 
-*.sln
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-*.filters
-*.vcxproj
+#*.sln
+#*.vcxproj
+#*.vcxproj.filters
+#*.vcxproj.user
+#*.filters
+#*.vcxproj
 -B
 cmake_install.cmake
 CMakeCache.txt
 
+CES/out/build
