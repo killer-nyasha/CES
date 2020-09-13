@@ -26,7 +26,6 @@ class Turn
     friend LGraphics::LGApp;
 
     size_t unit = Field::empty;
-
     bool willBecomeKing_ = false;
     Turn(size_t unit, szvect2 from, szvect2 to, szvect2 ate, bool willBecomeKing_)
         :unit(unit), from(from), to(to), ate(ate), willBecomeKing_(willBecomeKing_) {}
@@ -43,22 +42,41 @@ class Board
 {
 public:
 
-    Board()
+    Board(LGraphics::LGApp* app)
     {
-        //init standart board (russian checkers)
-
+        init standart board (russian checkers)
+        
         wCheckers = 12, bCheckers = 12;
         for (size_t i = 1; i <= 3; ++i)
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0)
-                    setField(i, j, wChecker);
+                    initChecker(i, j, wChecker);
 
         for (size_t i = 8; i > 5; --i)
             for (size_t j = 1; j <= 8; ++j)
                 if ((i + j) % 2 == 0)
-                    setField(i, j, bChecker);
+                    initChecker(i, j, bChecker);
+
+        //wCheckers = 4, bCheckers = 5;
+
+        //initChecker(1, 1, wChecker);
+        //initChecker(1, 5, wChecker);
+        //initChecker(2, 6, wChecker);
+        //initChecker(4, 8, wChecker);
+
+        //initChecker(3, 1, bChecker);
+        //initChecker(6, 6, bChecker);
+        //initChecker(5, 7, bChecker);
+        //initChecker(7, 7, bChecker);
+        //initChecker(6, 8, bChecker);
 
         prevTurn.unit = bChecker;
+    }
+
+    void initChecker(const size_t x, const size_t y, const int checker)
+    {
+        setField(x, y, checker);
+        drawUnit(x, y, getColor(checker));
     }
 
     size_t getField(const size_t x, const size_t y) const
@@ -72,6 +90,13 @@ public:
         (*this)(x, y, 1) = bits[2];
         (*this)(x, y, 2) = bits[1];
         (*this)(x, y, 3) = bits[0];
+    }
+
+    void drawUnit(const size_t x, const size_t y, const int color)
+    {
+        app.app.getOpenGlDrawing().lock();
+        app.addChecker(x, y, color);
+        app.app.getOpenGlDrawing().unlock();
     }
 
     PoolPointer<std::vector<Turn>> getVariants()

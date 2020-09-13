@@ -6,7 +6,6 @@ namespace LGraphics
     {
         bool c = false;
         for (int i = 0, j = npol - 1; i < npol; j = i++)
-        {
             if ((
                 (yp[i] < yp[j]) && (yp[i] <= p.y) && (p.y <= yp[j]) &&
                 ((yp[j] - yp[i]) * (p.x - xp[i]) > (xp[j] - xp[i]) * (p.y - yp[i]))
@@ -15,7 +14,6 @@ namespace LGraphics
                     ((yp[j] - yp[i]) * (p.x - xp[i]) < (xp[j] - xp[i]) * (p.y - yp[i]))
                     ))
                 c = !c;
-        }
         return c;
     }
 
@@ -51,42 +49,13 @@ namespace LGraphics
         return ((y + 1.0f)*screenSize.y) / 2.0f;
     }
 
+    std::tuple<fvect2, fvect2> getMoveAndSizeByCoords(fvect2 topLeft, fvect2 topRight, fvect2 bottomRight, fvect2 bottomLeft)
+    {
+        return std::tuple<fvect2, fvect2>({ (topLeft.x - topRight.x) / 2.0f, (topLeft.y - bottomLeft.y) / 2.0f , 1.0f }, fvect3(topLeft.x, topLeft.y, 0.0f) - fvect3(-0.5f, 0.5f, 0.0f));
+    }
+
     fvect3 rgbToFloat(unsigned char r, unsigned char g, unsigned char b)
     {
         return{ (float)r / (float)sizeof(unsigned char), (float)g / (float)sizeof(unsigned char), (float)b / (float)sizeof(unsigned char) };
     }
 }
-
-//#ifdef __linux__
-//
-//    std::string getClipboard()
-//    {
-//        return std::string();
-//    }
-//
-//#elif _WIN32
-//
-//    std::string getClipboard()
-//    {
-//        // Try opening the clipboard
-//        if (!OpenClipboard(nullptr))
-//            throw std::exception("can't open clipboard\n");
-//
-//          // Get handle of clipboard object for ANSI text
-//        HANDLE hData = GetClipboardData(CF_TEXT);
-//        if (hData == nullptr)
-//            throw std::exception("can't get data handler\n");
-//
-//          // Lock the handle to get the actual text pointer
-//        char * pszText = static_cast<char*>(GlobalLock(hData));
-//        if (pszText == nullptr)
-//            throw std::exception("can't get text by handler\n");
-//
-//        std::string text(pszText);
-//        GlobalUnlock(hData);
-//        CloseClipboard();
-//
-//        return text;
-//    }
-//
-//#endif

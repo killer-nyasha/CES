@@ -1,13 +1,10 @@
-﻿#include "LApp.h"
-#include "LApp.h"
-#include "pch.h"
+﻿#include "pch.h"
 #include "LApp.h"
 #include "LError.h"
-#include "Lshaders.h"
 #include "LTextEdit.h"
 #include "LRectangleBuffer.h"
+#include "LWRectangle.h"
 #include "LTimer.h"
-
 
 namespace LGraphics
 {
@@ -16,22 +13,16 @@ namespace LGraphics
         init();
     }
 
-    LApp::LApp(std::function<void()> tick)
-    {
-        this->tick = tick;
-        init();
-    }
-
     void LApp::loop()
     {
-        static LTimer t([&]()
+        LTimer t([&]()
         {prevFps = fps; fps = 0; }, std::chrono::milliseconds(1000));
         t.start();
-        std::thread tick(tick);
-        tick.detach();
         while (!glfwWindowShouldClose(window))
         {
+            openGlDrawing.lock();
             fps++;
+            initTextures();
             glfwPollEvents();
             glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -42,6 +33,7 @@ namespace LGraphics
                 LLine::display(t.text, t.pos.x, t.pos.y, t.scale, t.color);
             LLine::display(std::to_string(prevFps), 50.0f, (float)getWindowSize().y - 50.0f, 1.5f, { 1.0f,0.0f,0.0f });
             glfwSwapBuffers(window);
+            openGlDrawing.unlock();
             for (auto& o : objects)
                 o->tick();
         }
@@ -59,12 +51,41 @@ namespace LGraphics
         textObjects.pop_back();
     }
 
-    LWidgetI * LApp::getActiveWidget()
+    LWidget * LApp::getActiveWidget()
     {
         return activeWidget;
     }
 
-    void LApp::addObject(LWidgetI * w)
+    void LApp::setMatrices(glm::mat4 view, glm::mat4 projection)
+    {
+        this->view = view;
+        this->projection = projection;
+    }
+
+    void LApp::refreshObjectMatrices()
+    {
+        for (auto& obj : objects)
+            if (dynamic_cast<LWRectangle*>(obj))
+                dynamic_cast<LWRectangle*>(obj)->setMatrices(this);
+    }
+
+    void LApp::addSizeToTexturesToInitVector(const size_t size)
+    {
+        texturesToInit.resize(texturesToInit.size() + size);
+    }
+
+    void LApp::setMatrices()
+    {
+        auto aspect = (float)getWindowSize().x / (float)getWindowSize().y;
+        view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f));
+
+        projection = glm::perspective(45.0f, (float)getWindowSize().x / (float)getWindowSize().y, 0.1f, 100.0f);
+        //projection = glm::ortho(-1.0f, 1.0f, -1.0f*aspect, 1.0f*aspect, 0.1f, 100.0f);
+    }
+
+    void LApp::addObject(LWidget * w)
     {
         objects.push_back(w);
     }
@@ -78,6 +99,10 @@ namespace LGraphics
     void LApp::initLEngine()
     {
         LError::init();
+        standartRectBuffer = new LRectangleBuffer();
+        standartInterfaceshader = new LShaders::Shader(LShaders::interface_v, LShaders::interface_f);
+        standartWorldObjShader = new LShaders::Shader(LShaders::world_w, LShaders::interface_f);
+        setMatrices();
         addText("Lizard Graphics v. 0.2", { static_cast<float>(width) - 400.0f,50.0f }, 0.7, { 1,0.75,0.81 });
     }
 
@@ -87,22 +112,25 @@ namespace LGraphics
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-        glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+        //glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+        //glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
-        window = glfwCreateWindow(1919, 1080, "My Title", NULL, NULL);
-        width = 1919;
-        height = 1080;
-        //const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        //width = mode->width;
-        //height = mode->height;
+        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-        //glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-        //glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-        //glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-        //glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+#ifndef NDEBUG
+        window = glfwCreateWindow(mode->width - 1, mode->height, "My Title", NULL, NULL);
+        width = mode->width - 1;
+        height = mode->height;
+#else
+        width = mode->width;
+        height = mode->height;
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+        window = glfwCreateWindow(mode->width, mode->height, "window", glfwGetPrimaryMonitor(), nullptr);
+#endif
 
-        //window = glfwCreateWindow(mode->width, mode->height, "window", glfwGetPrimaryMonitor(), nullptr);
         glfwMakeContextCurrent(window);
         
         glfwSetWindowUserPointer(window, this);
@@ -136,7 +164,7 @@ namespace LGraphics
         int width_, height_;
         glfwGetFramebufferSize(window, &width_, &height_);
         glViewport(0, 0, width_, height_);
-        textRenderer = &LLine(this);
+        textRenderer = new LLine(this);
     }
 
     void LApp::checkEvents()
@@ -147,33 +175,43 @@ namespace LGraphics
     {
         for (auto& x : objects)
             delete x;
+        delete standartRectBuffer;
+        delete standartInterfaceshader;
+        delete standartWorldObjShader;
         LError::releaseResources();
     }
 
     void LApp::mouse_button_callback(GLFWwindow * window, int button, int action, int mods)
     {
+        bool out = false;
+        if (!objects.size()) return;
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
         {
-            for (auto& o = objects.end()-1; o >= objects.begin(); o--)
+            // нужно сменить итераторы на C-шный цикл
+            size_t num = 0;
+            for (int i = objects.size()-1; i > -1; --i)
+            //for (auto& o = objects.rbegin(); o < objects.rend(); o++, num++)
             {
-                if ((*o)->mouseOnIt())
+                auto o = objects[i];
+                if (o->mouseOnIt())
                 {
                     if (activeWidget) activeWidget->breakAnimation();
-                    activeWidget = *o;
-
-                    if (dynamic_cast<LIButton*>(*o))
+                    activeWidget = o;
+                    if (dynamic_cast<LIButton*>(o))
                     {
-                        ((LIButton*)*o)->doClickEventFunction();
-                        return;
+                        ((LIButton*)o)->doClickEventFunction();
+                        out = true;
                     }
                 }
 
-                for (auto& innerW : (*o)->getInnerWidgets())
+                for (auto& innerW : (o)->getInnerWidgets())
                     if (dynamic_cast<LScroller*>(innerW) && ((LScroller*)innerW)->mouseOnIt())
                     {
                         if (activeWidget) activeWidget->breakAnimation();
                         activeWidget = innerW;
+                        return;
                     }
+                if (out) return;
             }
         }
 
@@ -207,6 +245,13 @@ namespace LGraphics
         LTextEdit* textEdit = dynamic_cast<LTextEdit*>(activeWidget);
         if (textEdit)
             textEdit->addText(std::string(1, codepoint));
+    }
+
+    void LApp::initTextures()
+    {
+        for (auto& w : texturesToInit)
+            w->LImage::init();
+        texturesToInit.clear();
     }
 
 }

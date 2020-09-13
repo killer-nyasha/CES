@@ -1,19 +1,17 @@
 ﻿#pragma once
 
-#include "LBuffer.h"
-#include "LWidgetI.h"
+#include "LWidget.h"
 #include "LLine.h"
 
 #include "vectors.h"
 
 namespace LGraphics
 {
-    class LBaseComponent;
-
+    class LBuffer;
     /*!
     @brief Переопределяет абстрактный класс LWidgetI.
     */
-    class LShape : public LWidgetI
+    class LShape : public LWidget
     {
     public:
 
@@ -94,19 +92,19 @@ namespace LGraphics
         void setLabelColor(unsigned char r, unsigned char g, unsigned char b) override;
         void setLabel(const std::string label) override;
            
-        virtual ~LShape()
-        {
-            //if (buffer)delete buffer;
-        }
+        virtual ~LShape();
 
     protected:
+
+        //LShape(){}
+
 
         /*!
         @brief
         @param path - путь к изображению.
         @param component - указатель на LBaseComponent.
         */
-        LShape(const char* path = nullptr, LBaseComponent* component = nullptr);
+        LShape(LApp* app, const char* path, bool lazy = true);
 
         /*!
         @brief
@@ -114,7 +112,7 @@ namespace LGraphics
         @param size - размер массива bytes.
         @param component - указатель на LBaseComponent.
         */
-        LShape(const unsigned char* bytes, size_t size, LBaseComponent* component = nullptr);
+        LShape(LApp* app, const unsigned char* bytes, size_t size, bool lazy = true);
 
         void setBuffer(LBuffer* buffer);  ///< Устанавливает буфер.
 
@@ -129,8 +127,8 @@ namespace LGraphics
 
         float transparency_ = 1.0f;                ///< Прозрачность виджета.
 
-        LShaders::Shader* shader;                  ///< Шейдер.
-        LBuffer* buffer;                           ///< Координатный буфер (вершини, индексы, текстурные координаты).
+        LShaders::Shader* shader = nullptr;                  ///< Шейдер.
+        LBuffer* buffer = nullptr; ///< Координатный буфер (вершини, индексы, текстурные координаты).
     };
 }
 

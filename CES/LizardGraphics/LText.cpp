@@ -1,13 +1,11 @@
+#include "pch.h"
+#include "LApp.h"
 #include "LText.h"
-#include "LRectangleBuffer.h"
-#include "additional.h"
-#include <cassert>
 
 namespace LGraphics
 {
-
-    LGraphics::LText::LText(LApp * app, const std::string text_, LObject* parent, const char* path, LBaseComponent* component)
-        :LIButton(app, parent, path, component)
+    LGraphics::LText::LText(LApp * app, const std::string text_, const char* path)
+        :LIButton(app, path)
     {
         initWidget();
         addText(text_);
@@ -28,8 +26,8 @@ namespace LGraphics
 
     void LGraphics::LText::draw()
     {
-        if (app->getActiveWidget() == this)
-            doAnimation();
+        //if (app->getActiveWidget() == this)
+        //    doAnimation();
         LRectangleShape::draw();
         for (auto str = begin; str < end; str++)
         {
@@ -120,7 +118,8 @@ namespace LGraphics
         if (vertScroller)
             std::remove(innerWidgets.begin(), innerWidgets.end(), vertScroller);
         vertScroller = scroller;
-        scroller->scale({ scale_.x / 25.0f,scale_.y, scale_.z });
+        scroller->scaleWithoutAlign({ scale_.x / 25.0f,scale_.y, scale_.z });
+        //scroller->move(getTopRightCorner());
         //scroller->move(fvect3(getTopRightCorner().x, move_.y, move_.z));
         scroller->reloadScroller(hiddenStrings);
         innerWidgets.push_back(scroller);
@@ -152,8 +151,9 @@ namespace LGraphics
     void LGraphics::LText::alignText()
     {
         std::string wholeText;
-        for (auto& str : text)
-            wholeText += str.text;
+        for (size_t i = 0; i < text.size(); ++i)
+            wholeText += text[i].text += '\n';
+        wholeText.pop_back();
         text.clear();
         initWidget();
         addText(wholeText);
@@ -171,12 +171,13 @@ namespace LGraphics
 
     void LGraphics::LText::pushNewString()
     {
+        fvect3 topLeftCorner = getTopLeftCorner();
         Text temp;
         if (text.size())
-            temp.pos = { text.back().pos.x, text.back().pos.y - strIndent };
+            temp.pos = { topLeftCorner.x + leftBorder, text.back().pos.y - strIndent };
         else
         {
-            fvect3 topLeftCorner = getTopLeftCorner();
+            //fvect3 topLeftCorner = getTopLeftCorner();
             temp.pos = { topLeftCorner.x + leftBorder, topLeftCorner.y - topBorder };
         }
 
@@ -194,8 +195,7 @@ namespace LGraphics
         hiddenStrings = 0;
         pushNewString();
         calculateMaxLength();
-        begin = text.begin();
-        end = text.end();
+        yAlign();
     }
 
 }
