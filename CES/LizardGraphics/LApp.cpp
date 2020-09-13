@@ -20,6 +20,7 @@ namespace LGraphics
         t.start();
         while (!glfwWindowShouldClose(window))
         {
+            _sleep(5);
             openGlDrawing.lock();
             fps++;
             initTextures();
@@ -33,9 +34,10 @@ namespace LGraphics
                 LLine::display(t.text, t.pos.x, t.pos.y, t.scale, t.color);
             LLine::display(std::to_string(prevFps), 50.0f, (float)getWindowSize().y - 50.0f, 1.5f, { 1.0f,0.0f,0.0f });
             glfwSwapBuffers(window);
-            openGlDrawing.unlock();
             for (auto& o : objects)
                 o->tick();
+            openGlDrawing.unlock();
+
         }
         t.stop();
         glfwTerminate();
