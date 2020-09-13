@@ -1,15 +1,27 @@
 ﻿#pragma once
-#include <vector>
+#include <cstdlib>
 
-#define AI_PLAYER 1
+#include <vector>
+#include <thread>
+
+//#define AI_PLAYER 1
+//#define HUMAN_PLAYER 0
+#define GAME_GOES_ON -1
 
 template <typename M, typename T>
 class DeepPoisk
 {
 public:
 
+	//==========================================================================
+
+	//точка входа
+	//выбирает ход с максимальным first/second
+	//использует алгоритм poisk2
 	Turn selectTurn(M& model)
 	{
+		setPlayerFromModel(model);
+
 		auto p_turnsW = model.getVariants();
 		auto turnsW = *p_turnsW;
 
@@ -22,8 +34,6 @@ public:
 
 			auto pair = poisk2(modelCopy);
 			results.push_back((float)pair.first / (float)pair.second);
-
-			//std::cout << "yeah!";
 		}
 
 		size_t maxI = 0;
@@ -33,7 +43,96 @@ public:
 		return turnsW[maxI];
 	}
 
-	//����� � �������
+	//точка входа
+	//выбирает случайный ход
+	Turn selectTurn_random(M& model)
+	{
+		setPlayerFromModel(model);
+
+		auto p_turnsW = model.getVariants();
+		auto turnsW = *p_turnsW;
+
+		return turnsW[rand() % turnsW.size()];
+	}
+
+	//точка входа
+	//выбирает ход с наилучшей позицией после него
+	Turn selectTurn_simple(M& model)
+	{
+		setPlayerFromModel(model);
+
+		auto p_turnsW = model.getVariants();
+		auto turnsW = *p_turnsW;
+
+		std::vector<float> results;
+
+		for (size_t i = 0; i < turnsW.size(); i++)
+		{
+			M modelCopy = model;
+			modelCopy.doTurn(turnsW[i]);
+			float rating = analyze(modelCopy);
+			results.push_back(rating);
+		}
+
+		size_t maxI = 0;
+		for (size_t i = 1; i < results.size(); i++)
+			if (results[i] > results[maxI])
+				maxI = i;
+		return turnsW[maxI];
+	}
+
+
+protected:
+
+	//==========================================================================
+
+	size_t player;
+	size_t otherPlayer;
+	void setPlayer(size_t p)
+	{
+		player = p;
+		otherPlayer = 1 - p;
+		if (player > 1)
+			throw std::exception();
+	}
+
+	void setPlayerFromModel(M& model)
+	{
+		if (model.whoseTurn() == White)
+		{
+			auto p_turnsB = b.getVariants();
+			if (model.whoseTurn() == Black)
+				setPlayer(Black);
+			else setPlayer(White);
+		}
+		else 
+		{
+			auto p_turnsB = b.getVariants();
+			if (model.whoseTurn() == White)
+				setPlayer(White);
+			else setPlayer(Black);
+		}
+	}
+
+	//==========================================================================
+
+	float analyze(M& model)
+	{
+		float rating = 0;
+
+		if (model.won() != GAME_GOES_ON)
+			if (model.won() == player)
+				rating += 1;
+			else
+				rating += ((player == 1 ? -1 : 1) * modelCopy.boardAnalize() + 1) / 5.0f;
+
+		return rating;
+	}
+
+	//==========================================================================
+
+	//считает только победы и поражения, не оценивая позицию. возвращает (w, l)
+	//баг: неверно определяет, кто ходит
 	std::pair<int, int> poisk(M& model, int depth = 0)
 	{
 		auto variants = model.getVariants();
@@ -46,12 +145,10 @@ public:
 			M modelCopy = model;
 			modelCopy.doTurn(v);
 
-			if (modelCopy.won() != -1)
+			//кто-то выиграл
+			if (modelCopy.won() != GAME_GOES_ON)
 			{
-				//std::cout << "end at " << depth << "\n";
-
-				//���� ���������
-				if (modelCopy.won() == 0)
+				if (modelCopy.won() == player)
 					w++;
 				else l++;
 			}
@@ -64,13 +161,66 @@ public:
 		}
 
 		return std::make_pair(w, l);
-
-		//throw "� ��� ����� �� ������";
 	}
 
-	//����� � �������
+	//учитывает позицию. возвращает (rating, maxRating)
+	//баг: неверно определяет, кто ходит
 	std::pair<float, float> poisk2(M& model, int maxDepth = 7, int depth = 0)
 	{
+		auto variants = model.getVariants();
+
+		float rating = 0;
+		float maxRating = 0;
+
+		for (auto& v : *variants)
+		{
+			M modelCopy = model;
+			modelCopy.doTurn(v);
+
+			//кто-то выиграл
+			if (modelCopy.won() != GAME_GOES_ON)
+			{
+				rating += analyze(modelCopy);
+				maxRating += 1;
+			}
+			else if (depth == maxDepth) //заканчиваем ветку
+			{
+				rating += analyze(modelCopy);
+				maxRating += 1;
+			}
+			else
+			{
+				auto r = poisk2(modelCopy, maxDepth, depth + 1);
+				rating += r.first;
+				maxRating += r.second;
+
+				rating /= maxRating;
+				maxRating /= maxRating;
+			}
+		}
+
+		return std::make_pair(rating, maxRating);
+	}
+
+	//учитывает позицию. возвращает (rating, maxRating)
+	std::pair<float, float> poisk3(M& model, int maxDepth = 7, int depth = 0)
+	{
+		if (model.won() == GAME_GOES_ON)
+		{
+			if (model.whoseTurn() == player)
+			{
+
+			}
+			else if (model.whoseTurn() == otherPlayer)
+			{
+
+			}
+		}
+		else
+		{
+
+		}
+
 		auto variants = model.getVariants();
 
 		float rating = 0;
@@ -91,7 +241,7 @@ public:
 			}
 			else if (depth == maxDepth) //заканчиваем ветку
 			{
-				rating += ((AI_PLAYER == 1 ? -1 : 1) * modelCopy.boardAnalize()+1)/5.0f;
+				rating += ((AI_PLAYER == 1 ? -1 : 1) * modelCopy.boardAnalize() + 1) / 5.0f;
 				maxRating += 1;
 			}
 			else
@@ -109,3 +259,60 @@ public:
 	}
 
 };
+
+template <typename M, typename T>
+class DeepPoiskMultiThread : public DeepPoisk<M, T>
+{
+protected:
+
+	//для многопоточного поиска
+	float static_results[];
+
+	//для многопоточного поиска кладём результаты одного из ходов.
+	//используем poisk2
+	void getTurnResult(size_t i, Turn t, M* model)
+	{
+		M modelCopy = *model;
+		modelCopy.doTurn(t);
+		auto pair = poisk2(modelCopy);
+		static_results[i] = (float)pair.first / (float)pair.second;
+	}
+
+public:
+
+	//точка входа
+	//пока нет мьютекса у аллокаций пула, не работает
+	Turn selectTurnMultiThread(M& model/*, int threadCount = 0*/)
+	{
+		setPlayerFromModel(model);
+
+		//if (threadCount == 0)
+		//{
+			//threadCount = std::thread::hardware_concurrency();
+		//}
+		//else if (threadCount == 1)
+		//	return selectTurn(model);
+
+		auto p_turnsW = model.getVariants();
+		auto turnsW = *p_turnsW;
+
+		std::vector<std::thread> threads;
+
+		for (size_t i = 1; i < turnsW.size(); i++)
+		{
+			threads.emplace_back(std::thread(&DeepPoisk<M, T>::getTurnResult, i, turnsW[i], &model));
+		}
+
+		for (size_t i = 1; i < turnsW.size(); i++)
+			threads[i].join();
+
+		size_t maxI = 0;
+		for (size_t i = 1; i < turnsW.size(); i++)
+			if (static_results[i] > static_results[maxI])
+				maxI = i;
+		return turnsW[maxI];
+	}
+
+};
+
+//float DeepPoisk<M, T>::Multithread::static_results[32];

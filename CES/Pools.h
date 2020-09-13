@@ -187,3 +187,45 @@ public:
 		return *pointer;
 	}
 };
+
+
+template <typename T>
+class Pool
+{
+public:
+	//!storage
+	std::stack<T*> objects;
+
+	//!does nothing
+	template <typename C>
+	void clear(C* object) { }
+
+	//!clears vector after reuse
+	template <typename C>
+	void clear(std::vector<C>* object) { object->clear(); }
+
+	//!clears stack after reuse
+	template <typename C>
+	void clear(std::stack<C>* object) { while (objects.size() > 0) objects.pop(); }
+
+	//!get object from pool or create (in heap) with default constructor
+	//!\warning it returns a pointer so you must return it to pool manually
+	T* alloc()
+	{
+		if (objects.size() == 0)
+			objects.push(new T());
+
+		T* object = objects.top();
+		objects.pop();
+		//pool_init(object);
+
+		return /*std::move(*//*)*/object;
+	}
+
+	//!clear object and return it to the pool 
+	void free(T* value)
+	{
+		clear(value);
+		objects.push(/*std::move(*/value/*)*/);
+	}
+};

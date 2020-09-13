@@ -44,7 +44,11 @@ void tick()
                 else continue;
             }
             else //bot
-                b.doTurn(turnsB[turnsB.size() / 2], &app);
+            {
+                DeepPoisk<decltype(b), Turn> ces;
+                b.doTurn(ces.selectTurn_random(b), &app);
+                //b.doTurn(ces.selectTurn_simple(b), &app);
+            }
         }
         else
         {
@@ -61,6 +65,8 @@ void tick()
 
 int main()
 {
+    std::cout << sizeof(Board<8, 8>);
+
     app.setTick(tick);
     app.loop();
     std::cout << "\n end of game!\n";
