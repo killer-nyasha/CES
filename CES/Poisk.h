@@ -121,10 +121,14 @@ protected:
 		float rating = 0;
 
 		if (model.won() != GAME_GOES_ON)
+		{ 
 			if (model.won() == player)
 				rating += 1;
-			else
-				rating += ((player == 1 ? -1 : 1) * model.boardAnalize() + 1) / 5.0f;
+		}
+		else
+		{
+			rating += ((player == 1 ? -1 : 1) * model.boardAnalize() + 1) / 2.0f;//0...2 / 2 = 0...1
+		}
 
 		return rating;
 	}
@@ -203,12 +207,12 @@ protected:
 	}
 
 	//учитывает позицию. возвращает (rating, maxRating)
-	std::pair<float, float> poisk3(M& model, int maxDepth = 7, int depth = 0)
+	std::pair<float, float> poisk3(M& model, int maxDepth = 5, int depth = 0)
 	{
 		float rating = 0;
 		float maxRating = 0;
 
-		if (model.won() == GAME_GOES_ON)
+		if (model.won() == GAME_GOES_ON && depth < maxDepth)
 		{
 			//if (model.whoseTurn() == player)
 			//{
@@ -218,6 +222,8 @@ protected:
 					M modelCopy = model;
 					modelCopy.doTurn(v);
 					auto r = poisk3(modelCopy, maxDepth, depth + 1);
+
+					//std::cout << r.first << " " << r.second << "\n";
 
 					rating += r.first;
 					maxRating += r.second;
