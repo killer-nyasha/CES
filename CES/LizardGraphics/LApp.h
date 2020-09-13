@@ -1,21 +1,15 @@
 ﻿#pragma once
 
-#include <vector>
-
-#include "LLine.h"
+#include <mutex>
 
 #include "include/GLEW/glew.h"
 #include "include/GLFW/glfw3.h"
+#include "include/glm/glm.hpp"
 #include "Lshaders.h"
 #include "LIRectangle.h"
 
-#include "vectors.h"
-
 namespace LGraphics
 {
-    class LWidgetI;
-    class LBuffer;
-
     namespace
     {
     }
@@ -29,14 +23,11 @@ namespace LGraphics
     */
     class LApp : public LObject
     {
-        friend LIRectangle;
         friend LRectangleShape;
-        friend LShape;
 
     public:
         
         LApp();
-        LApp(std::function<void()> tick);
         ~LApp(){releaseResources();}
 
         /*!
@@ -51,9 +42,7 @@ namespace LGraphics
         @brief Возвращает размеры окна (в пикселях).
 
         */
-        szvect2 getWindowSize() const { 
-            return szvect2(width, height); 
-        }
+        szvect2 getWindowSize() const { return szvect2(width, height); }
 
         /*!
         @brief Возвращает дескриптор GLFW окна.
@@ -63,28 +52,44 @@ namespace LGraphics
 
         void addText(std::string text, fvect2 pos, float scale, fvect3 color);
         void popText();
-        LWidgetI* getActiveWidget();
+        LWidget* getActiveWidget();
 
         void lockFps(size_t fps_) { fpsLock = fps_; }
 
         void setResolution(size_t resolutionX, size_t resolutionY) { glfwSetWindowSize(window, resolutionX, resolutionY); }
-        void setActiveWidget(LWidgetI* w) { activeWidget = w; }
+        void setActiveWidget(LWidget* w) { activeWidget = w; }
+        void setMatrices(glm::mat4 view, glm::mat4 projection);
 
-        std::vector<LWidgetI*>* getObjects() { return &objects; }
+        void refreshObjectMatrices();
+
+        std::vector<LWidget*>* getObjects() { return &objects; }
         std::vector<Text>& getTextObjects() { return textObjects; }
 
-        void setTick(std::function<void()> tick) { this->tick = tick; }
+        LShaders::Shader* getStandartWorldObjShader() const { return standartWorldObjShader; }
+        LShaders::Shader* getStandartInterfaceShader() const { return standartInterfaceshader; }
+
+        glm::mat4 getViewMatrix() const { return view; }
+        glm::mat4 getProjectionMatrix() const { return projection; }
+
+        void addSizeToTexturesToInitVector(const size_t size);
+        void addTextureToInit(LWidget* widget) { texturesToInit.push_back(widget);}
+
+        std::mutex& getOpenGlDrawing() { return openGlDrawing; }
+
         //void setWindowedMode() { glfwSetWindowMonitor(window, NULL, 0, 0, width, height, 10000); }
             
     private:
 
-        void addObject(LWidgetI* w);
+        void setMatrices();
+        void addObject(LWidget* w);
 
         LLine* textRenderer;
 
         void init();
         void initLEngine();
         void initOpenGl();
+
+        void initTextures();
 
         void checkEvents();
 
@@ -96,15 +101,25 @@ namespace LGraphics
         void character_callback(GLFWwindow* window, unsigned int codepoint);
 
         GLFWwindow* window;
-        std::vector<LWidgetI*> objects;
+        std::vector<LWidget*> objects;
         std::vector<Text> textObjects;
 
         size_t width, height;
 
         size_t fps = 0, prevFps = 0, fpsLock = SIZE_MAX;
 
-        LWidgetI* activeWidget = nullptr;
-        std::function<void()> tick = [](){};
+        LWidget* activeWidget = nullptr;
+
+        LBuffer* standartRectBuffer;
+        LShaders::Shader* standartInterfaceshader, *standartWorldObjShader;
+
+        std::vector<LWidget*> texturesToInit;
+
+        glm::mat4 view, projection;
+
+        //bool initingTextures = false;
+
+        std::mutex openGlDrawing;
     };
 }
 

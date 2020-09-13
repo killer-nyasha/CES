@@ -1,6 +1,7 @@
 #include "LGApp.h"
 #include "LApp.h"
 #include "additional.h"
+#include "Enums.h"
 #include <cmath>
 
 namespace LGraphics
@@ -22,6 +23,48 @@ namespace LGraphics
         return { firstPosition.x - (y - 1)* dist.x, firstPosition.y - (x - 1)*dist.y, firstPosition.z - dist.z };
     }
 
+    void LGApp::addChecker(size_t x, size_t y, int color)
+    {
+        LIButton* checker;
+        if (color == Black) checker = new LGraphics::LIButton(&app,"black.png");
+        else if (color == White)checker = new LGraphics::LIButton(&app, "white.png");
+        else throw std::exception();
+
+        auto animFunf = [&]()
+        {
+            if (!playerTurn)
+            {
+                app.getActiveWidget()->breakAnimation();
+                return;
+            }
+            static bool fading = true;
+            if (app.getActiveWidget()->getTransparency() <= 0.25f)
+                fading = false;
+            else if (app.getActiveWidget()->getTransparency() >= 0.85f)
+                fading = true;
+            if (fading)
+                app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() - 0.015f);
+            else if (!fading)
+                app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() + 0.015f);
+        };
+
+        auto clickEventf = [&]() { prevActiveWidget = app.getActiveWidget(); };
+        auto breakAnimf = [&]() {app.getActiveWidget()->transparency(1.0f); };
+
+        auto initObj = [&](LIButton* w, size_t i, size_t j)
+        {
+            auto coords = getCoordsByPosition(i, j);
+            w->scale(0.09f, 0.16f, 1.0f);
+            w->turnOffColor();
+            w->setClickEventFunction(clickEventf);
+            w->setAnimation(animFunf);
+            w->setBreakingAnimation(breakAnimf);
+            moveToPos(w, i, j);
+        };
+
+        initObj(checker, x, y);
+    }
+
     void LGApp::deleteByPos(size_t x, size_t y)
     {
         auto obj = app.getObjects();
@@ -41,11 +84,11 @@ namespace LGraphics
     {
         auto obj = app.getObjects();
         auto i = getCheckerNumByPos(fromX,fromY);
-        LWidgetI* checker = i != -1 ? (*obj)[i] : nullptr;
+        LWidget* checker = i != -1 ? (*obj)[i] : nullptr;
         moveToPos(checker, toX, toY);
     }
 
-    void LGApp::moveToPos(LWidgetI* checker, size_t toX, size_t toY)
+    void LGApp::moveToPos(LWidget* checker, size_t toX, size_t toY)
     {
         checker->move(getCoordsByPosition(toX, toY));
     }
@@ -63,7 +106,7 @@ namespace LGraphics
 
     void LGApp::init()
     {
-        board = new LGraphics::LIButton(&app, nullptr, "d64_01.png", &c);
+        board = new LGraphics::LIButton(&app, "d64_01.png");
 
         board->setClickEventFunction([&]()
         {
@@ -86,7 +129,7 @@ namespace LGraphics
         board->scale(1.2f, 1.7f, 1.0f);
         board->turnOffColor();
 
-        const size_t checkersCount = 12;
+        /*const size_t checkersCount = 12;
         LIButton* white[checkersCount];
         for (size_t i = 0; i < checkersCount; ++i)
             white[i] = new LGraphics::LIButton(&app, nullptr, "white.png", &c);
@@ -95,50 +138,50 @@ namespace LGraphics
         for (size_t i = 0; i < checkersCount; ++i)
             black[i] = new LGraphics::LIButton(&app, nullptr, "black.png", &c);
 
-        size_t counter = 0;
+        size_t counter = 0;*/
 
-        auto animFunf = [&]()
-        {
-            if (!playerTurn)
-            {
-                app.getActiveWidget()->breakAnimation();
-                return;
-            }
-            static bool fading = true;
-            if (app.getActiveWidget()->getTransparency() <= 0.25f)
-                fading = false;
-            else if (app.getActiveWidget()->getTransparency() >= 0.85f)
-                fading = true;
-            if (fading)
-                app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() - 0.015f);
-            else if (!fading)
-                app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() + 0.015f);
-        };
+        //auto animFunf = [&]()
+        //{
+        //    if (!playerTurn)
+        //    {
+        //        app.getActiveWidget()->breakAnimation();
+        //        return;
+        //    }
+        //    static bool fading = true;
+        //    if (app.getActiveWidget()->getTransparency() <= 0.25f)
+        //        fading = false;
+        //    else if (app.getActiveWidget()->getTransparency() >= 0.85f)
+        //        fading = true;
+        //    if (fading)
+        //        app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() - 0.015f);
+        //    else if (!fading)
+        //        app.getActiveWidget()->transparency(app.getActiveWidget()->getTransparency() + 0.015f);
+        //};
 
-        auto clickEventf = [&]() { prevActiveWidget = app.getActiveWidget(); };
-        auto breakAnimf = [&]() {app.getActiveWidget()->transparency(1.0f);};
+        //auto clickEventf = [&]() { prevActiveWidget = app.getActiveWidget(); };
+        //auto breakAnimf = [&]() {app.getActiveWidget()->transparency(1.0f);};
 
-        auto initObj = [&](LIButton* w,size_t i, size_t j)
-        {
-            auto coords = getCoordsByPosition(i, j);
-            w->scale(0.09f, 0.16f, 1.0f);
-            w->turnOffColor();
-            w->setClickEventFunction(clickEventf);
-            w->setAnimation(animFunf);
-            w->setBreakingAnimation(breakAnimf);
-            moveToPos(w, i, j);
-            ++counter;
-        };
+        //auto initObj = [&](LIButton* w,size_t i, size_t j)
+        //{
+        //    auto coords = getCoordsByPosition(i, j);
+        //    w->scale(0.09f, 0.16f, 1.0f);
+        //    w->turnOffColor();
+        //    w->setClickEventFunction(clickEventf);
+        //    w->setAnimation(animFunf);
+        //    w->setBreakingAnimation(breakAnimf);
+        //    moveToPos(w, i, j);
+        //    ++counter;
+        //};
 
-        for (size_t i = 1; i <= 3; ++i)
-            for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0)
-                    initObj(white[counter], i, j);
-        counter = 0;
-        for (size_t i = 8; i >= 6; i--)
-            for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0)
-                    initObj(black[counter], i, j);
+        //for (size_t i = 1; i <= 3; ++i)
+        //    for (size_t j = 1; j <= 8; ++j)
+        //        if ((i + j) % 2 == 0)
+        //            initObj(white[counter], i, j);
+        //counter = 0;
+        //for (size_t i = 8; i >= 6; i--)
+        //    for (size_t j = 1; j <= 8; ++j)
+        //        if ((i + j) % 2 == 0)
+        //            initObj(black[counter], i, j);
     }
 
     LGApp::LGApp()
@@ -148,7 +191,6 @@ namespace LGraphics
 
     LGApp::LGApp(std::function<void()> tick)
     {
-        app.setTick(tick);
         init();
     }
 }

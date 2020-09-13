@@ -22,10 +22,10 @@ namespace LGraphics {
             ivect2 to = { 0,0 }, from = {0,0};
         };
 
+        void addChecker(size_t x, size_t y, int color);
         void deleteByPos(size_t x, size_t y);
         void moveToPos(size_t fromX, size_t fromY, size_t toX, size_t toY);
-        void moveToPos(LWidgetI* checker, size_t toX, size_t toY);
-        void setTick(std::function<void()> func) { app.setTick(func); }
+        void moveToPos(LWidget* checker, size_t toX, size_t toY);
         void loop();
 
         LGApp();
@@ -37,11 +37,9 @@ namespace LGraphics {
 
     private:
 
-        LWidgetI* prevActiveWidget = nullptr;
+        LWidget* prevActiveWidget = nullptr;
         ivect2 getPosByCoords(szvect2 screenSize, GLFWwindow* wnd, fvect3 coords);
         fvect3 getCoordsByPosition(size_t x, size_t y);
-
-        LGraphics::LBaseComponent c;
 
         LIButton* board;
 

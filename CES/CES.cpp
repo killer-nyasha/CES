@@ -19,7 +19,7 @@ Turn* findTurn(std::vector<Turn>& pool, LGraphics::LGApp::TryTurn turn)
 
 void tick()
 {
-    Board<8, 8> b;
+    Board<8, 8> b(&app);
     bool player = true;
     while (b.won() == -1)
     {
@@ -61,7 +61,8 @@ void tick()
 
 int main()
 {
-    app.setTick(tick);
+    std::thread thread(tick);
     app.loop();
+    thread.join();
     std::cout << "\n end of game!\n";
 }

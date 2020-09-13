@@ -4,8 +4,6 @@
 namespace LGraphics
 {
     class LApp;
-    class LBuffer;
-    class LBaseComponent;
 
     /*!
     @brief Класс четурёхугольной формы.
@@ -15,8 +13,8 @@ namespace LGraphics
     public:
 
         bool mouseOnIt() override; ///< Возвращает находится ли мышка на виджете.
-
         void draw() override; ///< Рисует виджет на сцене.
+        //LRectangleShape(LApp* app);
 
         /*!
         @brief Конструктор.
@@ -25,7 +23,7 @@ namespace LGraphics
         @param path - путь к текстуре.
         @param component - указатель на LBaseComponent.
         */
-        LRectangleShape(LApp* app, LObject* parent = nullptr, const char* path = nullptr, LBaseComponent* component = nullptr);
+        LRectangleShape(LApp* app, const char* path = nullptr, bool lazy = true);
 
         /*!
         @brief Конструктор.
@@ -35,7 +33,7 @@ namespace LGraphics
         @param size - размер массива bytes.
         @param component - указатель на LBaseComponent.
         */
-        LRectangleShape(LApp* app, LObject* parent = nullptr, const unsigned char* bytes = nullptr, size_t size = 0, LBaseComponent* component = nullptr);
+        LRectangleShape(LApp* app, const unsigned char* bytes = nullptr, size_t size = 0, bool lazy = true);
 
         void setLabel(const std::string label) override;
         void alignLabel() override;
@@ -51,6 +49,7 @@ namespace LGraphics
 
     protected:
 
+        void init(LApp* app);
         void updateLabelPos() override;
     };
 }

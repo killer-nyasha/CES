@@ -1,10 +1,9 @@
+#include "pch.h"
+
 #include "LScroller.h"
 #include "LApp.h"
-#include "LRectangleBuffer.h"
 #include "LText.h"
 #include "additional.h"
-#include <cassert>
-#include <cmath>
 
 namespace LGraphics
 {
@@ -18,16 +17,11 @@ namespace LGraphics
         //    std::cout << "NO\n";
     }
 
-    LScroller::LScroller(LApp * app, LObject * parent, const char * path, LBaseComponent * component)
-        :LIRectangle(app, parent, path, component)
-    {
+    LScroller::LScroller(LApp * app, const char * path)
+        :LIRectangle(app, path){}
 
-    }
-
-    LGraphics::LVerticalScroller::LVerticalScroller(LApp * app, LObject * parent, const char * path, LBaseComponent * component)
-        : LScroller(app, parent, path, component)
-    {
-    }
+    LGraphics::LVerticalScroller::LVerticalScroller(LApp * app, const char * path)
+        : LScroller(app, path){}
 
     void LVerticalScroller::reloadScroller(size_t scrollPositions)
     {
@@ -64,10 +58,8 @@ namespace LGraphics
         currentPos = position;
     }
 
-    LGraphics::LHorizontalScroller::LHorizontalScroller(LApp * app, LObject * parent, const char * path, LBaseComponent * component)
-        : LScroller(app, parent, path, component)
-    {
-    }
+    LGraphics::LHorizontalScroller::LHorizontalScroller(LApp * app, const char * path)
+        : LScroller(app, path){}
 
     void LHorizontalScroller::reloadScroller(size_t scrollPositions)
     {

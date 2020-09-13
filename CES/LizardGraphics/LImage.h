@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "include/GLEW/glew.h"
+
 #include "LObject.h"
-//#include "LWidgetI.h"
+#include "LResourceManager.h"
 
 namespace LGraphics
 {
@@ -56,32 +56,34 @@ namespace LGraphics
         */
         bool isTextureTurnedOn() const;
 
+        void init();
+
+        ~LImage();
+
     protected:
 
         /*!
         @brief Конструктор.
         @param path - путь к изображению.
         */
-        LImage(const char* path);
+        LImage(const char* path, bool lazy = true);
 
         /*!
         @brief Конструктор.
         @param bytes - массив байт (rgba).
         @param size - размер массива bytes.
         */
-        LImage(const unsigned char* bytes, size_t size);
-
-        /*!
-        @brief Привязывает текстуру.
-        @param bytes - массив байт (rgba).
-        @param width - ширина изображения (в пикселях).
-        @param height - длина изображения (в пикселях).
-        */
-        void bindTexture(unsigned char* bytes, int width, int height);
+        LImage(const unsigned char* bytes, size_t size, bool lazy = true);
 
         GLuint texture; ///< Дескриптор текстуры.
 
         bool turnedOn = true; ///< Включена ли текстура.
+
+        std::string texturePath;
+        unsigned char* texturesBytes = nullptr;
+        size_t texturesBytesSize = 0;
+
+        static LResourceManager resManager;
     };
 }
 

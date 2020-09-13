@@ -1,23 +1,20 @@
 ﻿#include "pch.h"
 #include "LRectangleShape.h"
-#include "LBaseComponent.h"
+#include "LRectangleBuffer.h"
 #include "LApp.h"
-#include "LIButton.h"
 
 namespace LGraphics
 {
-    LRectangleShape::LRectangleShape(LApp* app, LObject* parent, const char* path, LBaseComponent* component)
-        :LShape(path, component)
+    LRectangleShape::LRectangleShape(LApp* app, const char* path, bool lazy)
+        :LShape(app,path, lazy)
     {
-        this->app = app;
-        app->addObject(this);
+        init(app);
     }
 
-    LRectangleShape::LRectangleShape(LApp * app, LObject * parent, const unsigned char * bytes, size_t size, LBaseComponent* component)
-        :LShape(bytes, size, component)
+    LRectangleShape::LRectangleShape(LApp* app, const unsigned char * bytes, size_t size, bool lazy)
+        :LShape(app,bytes, lazy)
     {
-        this->app = app;
-        app->addObject(this);
+        init(app);
     }
 
     void LRectangleShape::setLabel(const std::string label)
@@ -72,6 +69,14 @@ namespace LGraphics
         return ((LRectangleBuffer*)buffer)->getBottomRightCorner() * scale_ + move_;
     }
 
+    void LRectangleShape::init(LApp* app)
+    {
+        this->app = app;
+        buffer = app->standartRectBuffer;
+        shader = app->standartInterfaceshader;
+        app->addObject(this);
+    }
+
     void LRectangleShape::updateLabelPos()
     {
         fvect2 coords = { getBottomLeftCorner().x, getBottomLeftCorner().y };
@@ -111,4 +116,10 @@ namespace LGraphics
         glBindVertexArray(0);
         LLine::display(label);
     }
+
+    //LRectangleShape::LRectangleShape(LApp* app)
+    //    :LShape()
+    //{
+    //    init(app);
+    //}
 }

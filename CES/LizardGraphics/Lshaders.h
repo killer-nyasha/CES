@@ -54,6 +54,22 @@ namespace LShaders
         "color = vec4(textColor, 1.0) * sampled;\n"
         "}\n";
 
+
+    const char world_w[] =
+        "#version 330 core\n"
+        "layout (location = 0) in vec3 position;\n"
+        "layout (location = 1) in vec2 texCoord;\n"
+        "out vec2 TexCoord;\n"
+        "uniform mat4 model;\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 projection;\n"
+        "void main()\n"
+        "{\n"
+        "gl_Position = projection * view * model * vec4(position, 1.0f);\n"
+        "TexCoord = vec2(texCoord.x, 1.0f - texCoord.y);\n"
+        "}\n";
+
+
     /*!
     @brief Класс шейдера.
 
@@ -63,6 +79,11 @@ namespace LShaders
     {
         GLuint program;
     public:
+
+        Shader()
+        {
+
+        }
 
         /*!
         @brief Конструктор
@@ -104,6 +125,25 @@ namespace LShaders
             glDeleteShader(vertex);
             glDeleteShader(fragment);
 
+        }
+
+        void bindShader(const GLchar* shader, short shaderType)
+        {
+            GLuint sh;
+            GLint success;
+            sh = glCreateShader(GL_VERTEX_SHADER);
+            glShaderSource(sh, 1, &shader, NULL);
+            glCompileShader(sh);
+            glGetShaderiv(sh, GL_COMPILE_STATUS, &success);
+            if (!success)
+                throw std::exception("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
+            this->program = glCreateProgram();
+            glAttachShader(this->program, sh);
+            glLinkProgram(this->program);
+            glGetProgramiv(this->program, GL_LINK_STATUS, &success);
+            if (!success)
+                throw std::exception("ERROR::SHADER::PROGRAM::LINKING_FAILED\n");
+            glDeleteShader(sh);
         }
 
         /*!
