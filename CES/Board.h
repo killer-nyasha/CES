@@ -44,7 +44,7 @@ public:
 
     Board(LGraphics::LGApp* app)
     {
-        init standart board (russian checkers)
+        //init standart board (russian checkers)
         
         wCheckers = 12, bCheckers = 12;
         for (size_t i = 1; i <= 3; ++i)
