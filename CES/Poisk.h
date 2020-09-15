@@ -18,7 +18,7 @@ public:
 	//точка входа
 	//выбирает ход с максимальным first/second
 	//использует алгоритм poisk3
-	Turn selectTurn(M& model)
+	Turn selectTurn_1_3(M& model)
 	{
 		setPlayerFromModel(model);
 
@@ -42,6 +42,35 @@ public:
 				maxI = i;
 		return turnsW[maxI];
 	}
+
+	//точка входа
+	//выбирает ход с максимальным first/second
+	//использует алгоритм poisk3
+	Turn selectTurn(M& model)
+	{
+		setPlayerFromModel(model);
+
+		auto p_turnsW = model.getVariants();
+		auto turnsW = *p_turnsW;
+
+		std::vector<float> results;
+
+		for (size_t i = 0; i < turnsW.size(); i++)
+		{
+			M modelCopy = model;
+			modelCopy.doTurn(turnsW[i]);
+
+			float r = poisk4(modelCopy);
+			results.push_back(r);
+		}
+
+		size_t maxI = 0;
+		for (size_t i = 1; i < results.size(); i++)
+			if (results[i] > results[maxI])
+				maxI = i;
+		return turnsW[maxI];
+	}
+
 
 	//точка входа
 	//выбирает случайный ход
@@ -281,6 +310,81 @@ protected:
 		//}
 
 		return std::make_pair(rating, maxRating);
+	}
+
+	//учитывает позицию. возвращает rating. минимаксный критерий
+	float poisk4(M& model, int depth = 5)
+	{
+		float minRating = 999999;//3.40282e+038f;
+		//float maxRating = 0;
+
+		if (model.won() == GAME_GOES_ON && depth > 0)
+		{
+			//if (model.whoseTurn() == player)
+			//{
+			auto variants = model.getVariants();
+			for (auto& v : *variants)
+			{
+				M modelCopy = model;
+				modelCopy.doTurn(v);
+				float r = poisk4(modelCopy, depth - 1);
+
+				//std::cout << r.first << " " << r.second << "\n";
+
+				if (r < minRating)
+					minRating = r;
+				//maxRating += r.second;
+
+				//rating += analyze(model);
+				//maxRating += 1;
+			}
+			//}
+			//else if (model.whoseTurn() == otherPlayer)
+			//{
+
+			//}
+		}
+
+		//заканчиваем
+		else
+		//if (!(model.won() == GAME_GOES_ON && depth > 0))
+		{
+			minRating = analyze(model);
+
+			//return minRating;
+		}
+
+
+
+		//for (auto& v : *variants)
+		//{
+		//	M modelCopy = model;
+		//	modelCopy.doTurn(v);
+
+		//	//кто-то выиграл
+		//	if (modelCopy.won() != -1)
+		//	{
+		//		if (modelCopy.won() == AI_PLAYER)
+		//			rating += 1;
+		//		maxRating += 1;
+		//	}
+		//	else if (depth == maxDepth) //заканчиваем ветку
+		//	{
+		//		rating += ((AI_PLAYER == 1 ? -1 : 1) * modelCopy.boardAnalize() + 1) / 5.0f;
+		//		maxRating += 1;
+		//	}
+		//	else
+		//	{
+		//		auto r = poisk2(modelCopy, maxDepth, depth + 1);
+		//		rating += r.first;
+		//		maxRating += r.second;
+
+		//		rating /= maxRating;
+		//		maxRating /= maxRating;
+		//	}
+		//}
+
+		return minRating;
 	}
 
 };
