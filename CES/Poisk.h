@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <thread>
+#include <climits>
 
 //#define AI_PLAYER 1
 //#define HUMAN_PLAYER 0
@@ -315,8 +316,8 @@ protected:
 	//учитывает позицию. возвращает rating. минимаксный критерий
 	float poisk4(M& model, int depth = 9)
 	{
-		float minRating = 999999;//3.40282e+038f;
-        float maxRating = -999999;
+		short minRating = INT16_MAX;//3.40282e+038f;
+        short maxRating = INT16_MIN;
 		//float maxRating = 0;
 
 		if (model.won() == GAME_GOES_ON && depth > 0)
@@ -330,8 +331,6 @@ protected:
 				modelCopy.doTurn(v);
 				float r = poisk4(modelCopy, depth - 1);
 
-				//std::cout << r.first << " " << r.second << "\n";
-
                 if (depth % 2 == 0)
                 {
                     if (r > maxRating)
@@ -343,18 +342,9 @@ protected:
                     if (r < minRating)
                         minRating = r;
                 }
-				//maxRating += r.second;
-
-				//rating += analyze(model);
-				//maxRating += 1;
 			}
             if (depth % 2 == 0)
                 minRating = maxRating;
-			//}
-			//else if (model.whoseTurn() == otherPlayer)
-			//{
-
-			//}
 		}
 
 		//заканчиваем

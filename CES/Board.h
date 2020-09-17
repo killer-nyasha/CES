@@ -57,19 +57,6 @@ public:
                 if ((i + j) % 2 == 0)
                     initChecker(i, j, bChecker);
 
-        //wCheckers = 4, bCheckers = 5;
-
-        //initChecker(1, 1, wChecker);
-        //initChecker(1, 5, wChecker);
-        //initChecker(2, 6, wChecker);
-        //initChecker(4, 8, wChecker);
-
-        //initChecker(3, 1, bChecker);
-        //initChecker(6, 6, bChecker);
-        //initChecker(5, 7, bChecker);
-        //initChecker(7, 7, bChecker);
-        //initChecker(6, 8, bChecker);
-
         prevTurn.unit = bChecker;
     }
 
@@ -198,31 +185,75 @@ public:
         return board[(X * (x - 1) + (y - 1)) / 2 * 3 + bit - 1];
     }
 
-    void drawBoard()
-    {
-        system("cls");
-        std::cout << "\n\n\n\n\n\n\n";
-        std::cout << "\n                                                    a b c d e f g h";
-        std::cout << "\n                                                    ---------------";
-        for (size_t i = 8; i >= 1; --i)
-        {
-            std::cout << "\n                                                  ";
-            std::cout << i << "|";
-            for (size_t j = 1; j <= 8; ++j)
-            {
-                if ((i + j) % 2 == 0) drawObject(getField(i, j));
-                else std::cout << "  ";
-            }
-            std::cout << "|" << i;
-        }
-        std::cout << "\n                                                    ---------------";
-        std::cout << "\n                                                    a b c d e f g h";
-    }
+    //void drawBoard()
+    //{
+    //    system("cls");
+    //    std::cout << "\n\n\n\n\n\n\n";
+    //    std::cout << "\n                                                    a b c d e f g h";
+    //    std::cout << "\n                                                    ---------------";
+    //    for (size_t i = 8; i >= 1; --i)
+    //    {
+    //        std::cout << "\n                                                  ";
+    //        std::cout << i << "|";
+    //        for (size_t j = 1; j <= 8; ++j)
+    //        {
+    //            if ((i + j) % 2 == 0) drawObject(getField(i, j));
+    //            else std::cout << "  ";
+    //        }
+    //        std::cout << "|" << i;
+    //    }
+    //    std::cout << "\n                                                    ---------------";
+    //    std::cout << "\n                                                    a b c d e f g h";
+    //}
 
-    float boardAnalize()
+    short boardAnalize()
     {
-        etalon = bCheckers * checkerValue + wCheckers * checkerValue + 2 * powerPosValue - 8 * weakPosValue;
-        return (playerAnalize(Black) + playerAnalize(White)) / etalon;
+        short res = 0;
+
+        res += (wCheckers - bCheckers)*checkerValue;
+
+        if (getColor(4, 6) == Black) res -= powerPosValue;
+        else if (getColor(4, 6) == White) res += powerPosValue;
+
+        if (getColor(5, 3) == Black) res -= powerPosValue;
+        else if (getColor(5, 3) == White) res += powerPosValue;
+
+        if (getColor(1, 1) == Black) res += weakPosValue;
+        else if (getColor(1, 1) == White) res -= weakPosValue;
+
+        if (getColor(3, 1) == Black) res += weakPosValue;
+        else if (getColor(3, 1) == White) res -= weakPosValue;
+
+        if (getColor(5, 1) == Black) res += weakPosValue;
+        else if (getColor(5, 1) == White) res -= weakPosValue;
+
+        if (getColor(7, 1) == Black) res += weakPosValue;
+        else if (getColor(7, 1) == White) res -= weakPosValue;
+
+        if (getColor(2, 8) == Black) res += weakPosValue;
+        else if (getColor(2, 8) == White) res -= weakPosValue;
+
+        if (getColor(4, 8) == Black) res += weakPosValue;
+        else if (getColor(4, 8) == White) res -= weakPosValue;
+
+        if (getColor(6, 8) == Black) res += weakPosValue;
+        else if (getColor(6, 8) == White) res -= weakPosValue;
+
+        if (getColor(8, 8) == Black) res += weakPosValue;
+        else if (getColor(8, 8) == White) res -= weakPosValue;
+
+        //if (getColor(1, 1) == color) res += weakPosValue;
+        //if (getColor(3, 1) == color) res += weakPosValue;
+        //if (getColor(5, 1) == color) res += weakPosValue;
+        //if (getColor(7, 1) == color) res += weakPosValue;
+        //if (getColor(2, 8) == color) res += weakPosValue;
+        //if (getColor(4, 8) == color) res += weakPosValue;
+        //if (getColor(6, 8) == color) res += weakPosValue;
+        //if (getColor(8, 8) == color) res += weakPosValue;
+        return res;
+        //playerAnalize(
+        //etalon = bCheckers * checkerValue + wCheckers * checkerValue + 2 * powerPosValue - 8 * weakPosValue;
+        //return playerAnalize(White) - playerAnalize(Black);
     }
 
     bool whoseTurn() const
@@ -232,11 +263,10 @@ public:
 
 private:
 
-    static const float checkerValue;
-    static const float powerPosValue;
-    static const float weakPosValue;
+    static const short checkerValue;
+    static const short powerPosValue;
+    static const short weakPosValue;
 
-    float etalon = 12 * bCheckers + 12 * wCheckers + 2 * powerPosValue - 8 * weakPosValue;
 
     void initDrawing()
     {
@@ -245,19 +275,21 @@ private:
 
     float playerAnalize(bool color)
     {
-        float res = color == Black ? bCheckers * checkerValue : wCheckers * checkerValue;
-        if (getColor(4, 6) == color) res += powerPosValue;
-        if (getColor(5, 3) == color) res += powerPosValue;
+        //float res = 0;
+        //color == White ? res += (wCheckers - bCheckers)*checkerValue : res += (bCheckers - wCheckers);
+        ////float res = color == Black ? (bCheckers - wCheckers)* checkerValue : wCheckers * checkerValue;
+        //if (getColor(4, 6) == color) res += powerPosValue;
+        //if (getColor(5, 3) == color) res += powerPosValue;
 
-        if (getColor(1, 1) == color) res += weakPosValue;
-        if (getColor(3, 1) == color) res += weakPosValue;
-        if (getColor(5, 1) == color) res += weakPosValue;
-        if (getColor(7, 1) == color) res += weakPosValue;
-        if (getColor(2, 8) == color) res += weakPosValue;
-        if (getColor(4, 8) == color) res += weakPosValue;
-        if (getColor(6, 8) == color) res += weakPosValue;
-        if (getColor(8, 8) == color) res += weakPosValue;
-        return color == Black ? -res : res;
+        //if (getColor(1, 1) == color) res += weakPosValue;
+        //if (getColor(3, 1) == color) res += weakPosValue;
+        //if (getColor(5, 1) == color) res += weakPosValue;
+        //if (getColor(7, 1) == color) res += weakPosValue;
+        //if (getColor(2, 8) == color) res += weakPosValue;
+        //if (getColor(4, 8) == color) res += weakPosValue;
+        //if (getColor(6, 8) == color) res += weakPosValue;
+        //if (getColor(8, 8) == color) res += weakPosValue;
+        //return res;
     }
 
     std::bitset<3> getBitsByPos(const size_t x, const size_t y) const
@@ -388,7 +420,7 @@ private:
     Turn prevTurn;
     int win = -1;
 
-    int wCheckers = 0, bCheckers = 0, wKing = 0, bKing = 0;
+    size_t wCheckers = 0, bCheckers = 0, wKing = 0, bKing = 0;
 
     bool currentTurn = White;
 };
