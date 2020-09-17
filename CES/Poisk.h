@@ -313,9 +313,10 @@ protected:
 	}
 
 	//учитывает позицию. возвращает rating. минимаксный критерий
-	float poisk4(M& model, int depth = 5)
+	float poisk4(M& model, int depth = 9)
 	{
 		float minRating = 999999;//3.40282e+038f;
+        float maxRating = -999999;
 		//float maxRating = 0;
 
 		if (model.won() == GAME_GOES_ON && depth > 0)
@@ -331,13 +332,24 @@ protected:
 
 				//std::cout << r.first << " " << r.second << "\n";
 
-				if (r < minRating)
-					minRating = r;
+                if (depth % 2 == 0)
+                {
+                    if (r > maxRating)
+                        maxRating = r;
+                }
+
+                else
+                {
+                    if (r < minRating)
+                        minRating = r;
+                }
 				//maxRating += r.second;
 
 				//rating += analyze(model);
 				//maxRating += 1;
 			}
+            if (depth % 2 == 0)
+                minRating = maxRating;
 			//}
 			//else if (model.whoseTurn() == otherPlayer)
 			//{

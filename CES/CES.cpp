@@ -52,9 +52,9 @@ void tick()
         }
         else
         {
-            auto p_turnsW = b.getVariants();
+            //auto p_turnsW = b.getVariants();
             if (b.whoseTurn() == White) continue;
-            auto turnsW = *p_turnsW;
+            //auto turnsW = *p_turnsW;
             DeepPoisk<decltype(b), Turn> ces;
             b.doTurn(ces.selectTurn(b), &app);
         }

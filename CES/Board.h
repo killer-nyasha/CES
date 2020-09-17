@@ -232,11 +232,11 @@ public:
 
 private:
 
-    const float checkerValue = 27.0f;
-    const float powerPosValue = 5.0f;
-    const float weakPosValue = -1.0f;
+    static const float checkerValue;
+    static const float powerPosValue;
+    static const float weakPosValue;
 
-    float etalon = bCheckers * checkerValue + wCheckers* checkerValue + 2* powerPosValue - 8* weakPosValue;
+    float etalon = 12 * bCheckers + 12 * wCheckers + 2 * powerPosValue - 8 * weakPosValue;
 
     void initDrawing()
     {
