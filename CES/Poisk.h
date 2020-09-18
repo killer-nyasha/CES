@@ -150,15 +150,15 @@ protected:
 	{
 		float rating = 0;
 
-		if (model.won() != GAME_GOES_ON)
-		{ 
-			if (model.won() == player)
-				rating += 1;
-		}
-		else
-		{
-			rating += ((player == 1 ? -1 : 1) * model.boardAnalize() + 1) / 2.0f;//0...2 / 2 = 0...1
-		}
+		//if (model.won() != GAME_GOES_ON)
+		//{ 
+		//	if (model.won() == player)
+		//		rating += 1;
+		//}
+		//else
+		//{
+            rating += (player == 1 ? -1 : 1) * model.boardAnalize();//0...2 / 2 = 0...1
+		//}
 
 		return rating;
 	}
