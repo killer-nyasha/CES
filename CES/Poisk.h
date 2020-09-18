@@ -168,7 +168,7 @@ protected:
 #ifdef _DEBUG
 #define DEFAULT_DEPTH 5
 #else
-#define DEFAULT_DEPTH 9
+#define DEFAULT_DEPTH 8
 #endif
 
 	//считает только победы и поражения, не оценивая позицию. возвращает (w, l)
@@ -334,8 +334,14 @@ protected:
 			for (auto& v : *variants)
 			{
 				M modelCopy = model;
+
+                bool turn = modelCopy.whoseTurn();
 				modelCopy.doTurn(v);
-				float r = poisk4(modelCopy, depth - 1);
+                float r = 0;
+                if (modelCopy.whoseTurn() == turn)
+                    r = poisk4(modelCopy, depth);      
+                else
+                    r = poisk4(modelCopy, depth - 1);
 
                 if (depth % 2 == 0)
                 {
