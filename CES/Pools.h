@@ -85,9 +85,6 @@ template <typename T>
 class StaticPool
 {
 public:
-	//!storage
-	static std::stack<T*> objects;
-
 	//!does nothing
 	template <typename C>
 	static void clear(C* object) { }
@@ -120,11 +117,14 @@ public:
 		clear(value);
 		objects.push(/*std::move(*/value/*)*/);
 	}
+
+	//!storage
+	static thread_local std::stack<T*> objects;
 };
 
 //!static pool storage implementation
 template <typename T>
-std::stack<T*> StaticPool<T>::objects;
+thread_local std::stack<T*> StaticPool<T>::objects;
 
 //!smart pointer to an object from pool
 //!it automatically gets object from pool on creation and returns it on destruction

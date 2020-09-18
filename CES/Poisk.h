@@ -165,6 +165,12 @@ protected:
 
 	//==========================================================================
 
+#ifdef _DEBUG
+#define DEFAULT_DEPTH 5
+#else
+#define DEFAULT_DEPTH 9
+#endif
+
 	//считает только победы и поражения, не оценивая позицию. возвращает (w, l)
 	//баг: неверно определяет, кто ходит
 	std::pair<int, int> poisk(M& model, int depth = 0)
@@ -314,7 +320,7 @@ protected:
 	}
 
 	//учитывает позицию. возвращает rating. минимаксный критерий
-	float poisk4(M& model, int depth = 9)
+	float poisk4(M& model, int depth = DEFAULT_DEPTH)
 	{
 		short minRating = INT16_MAX;//3.40282e+038f;
         short maxRating = INT16_MIN;
@@ -394,10 +400,16 @@ protected:
 template <typename M, typename T>
 class DeepPoiskMultiThread : public DeepPoisk<M, T>
 {
+public:
+	static std::pair<Turn, M*>* static_args[];
+	//для многопоточного поиска
+	static float static_results[];
+
+	std::vector<std::pair<Turn, M*>> args_val;
+
 protected:
 
-	//для многопоточного поиска
-	float static_results[];
+	//auto p_turnsW;
 
 	//для многопоточного поиска кладём результаты одного из ходов.
 	//используем poisk2
@@ -405,11 +417,31 @@ protected:
 	{
 		M modelCopy = *model;
 		modelCopy.doTurn(t);
-		auto pair = poisk2(modelCopy);
-		static_results[i] = (float)pair.first / (float)pair.second;
+		auto f = poisk4(modelCopy);
+		static_results[i] = f;
+	}
+
+	void thread_main(size_t i)
+	{
+		while (true)
+		{
+			if (static_args[i] != nullptr)
+			{
+				getTurnResult(i, static_args[i]->first, static_args[i]->second);
+				static_args[i] = nullptr;
+			}
+			_sleep(40);
+		}
 	}
 
 public:
+
+	std::vector<std::thread> threads;
+	DeepPoiskMultiThread()
+	{
+		for (size_t i = 1; i < 12; i++)
+			threads.emplace_back(std::thread(&DeepPoiskMultiThread<M, T>::thread_main, this, i));
+	}
 
 	//точка входа
 	//пока нет мьютекса у аллокаций пула, не работает
@@ -427,15 +459,34 @@ public:
 		auto p_turnsW = model.getVariants();
 		auto turnsW = *p_turnsW;
 
-		std::vector<std::thread> threads;
+		//std::vector<std::thread> threads;
+
+		for (size_t i = 1; i < turnsW.size(); i++)
+			static_results[i] = 32000;
+
+		args_val.clear();
+		for (size_t i = 0; i < turnsW.size(); i++)
+		{
+			args_val.push_back(std::make_pair(turnsW[i], &model));
+			//threads.emplace_back(std::thread(&DeepPoisk<M, T>::getTurnResult, i, turnsW[i], &model));
+		}
+		for (size_t i = 1; i < turnsW.size(); i++)
+			static_args[i] = &args_val[i];
+
+		getTurnResult(0, turnsW[0], &model);
 
 		for (size_t i = 1; i < turnsW.size(); i++)
 		{
-			threads.emplace_back(std::thread(&DeepPoisk<M, T>::getTurnResult, i, turnsW[i], &model));
+			if (static_results[i] == 32000)
+			{
+				_sleep(25);
+				i = 0;
+				continue;
+			}
 		}
 
-		for (size_t i = 1; i < turnsW.size(); i++)
-			threads[i].join();
+		//for (size_t i = 1; i < turnsW.size(); i++)
+		//	threads[i].join();
 
 		size_t maxI = 0;
 		for (size_t i = 1; i < turnsW.size(); i++)
@@ -445,5 +496,3 @@ public:
 	}
 
 };
-
-//float DeepPoisk<M, T>::Multithread::static_results[32];

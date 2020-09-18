@@ -8,6 +8,13 @@
 
 LGraphics::LGApp app;
 
+//======================================================
+template <typename M, typename T>
+float DeepPoiskMultiThread<M, T>::static_results[32];
+
+template <typename M, typename T>
+std::pair<Turn, M*>* DeepPoiskMultiThread<M, T>::static_args[32];
+//======================================================
 
 Turn* findTurn(std::vector<Turn>& pool, LGraphics::LGApp::TryTurn turn)
 {
@@ -55,8 +62,21 @@ void tick()
             //auto p_turnsW = b.getVariants();
             if (b.whoseTurn() == White) continue;
             //auto turnsW = *p_turnsW;
-            DeepPoisk<decltype(b), Turn> ces;
-            b.doTurn(ces.selectTurn(b), &app);
+
+            bool multithread = true;
+
+            if (multithread)
+            {
+                static DeepPoiskMultiThread<decltype(b), Turn> ces;
+                b.doTurn(ces.selectTurnMultiThread(b), &app);
+            }
+            else
+            {
+                DeepPoisk<decltype(b), Turn> ces;
+                b.doTurn(ces.selectTurn(b), &app);
+            }
+
+
         }
         Sleep(300);
     }
