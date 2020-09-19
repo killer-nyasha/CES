@@ -318,7 +318,9 @@ protected:
 		{
 			//if (model.whoseTurn() == player)
 			//{
-			auto variants = model.getVariants();
+			auto variants = model.getVariants();               
+			bool turn0 = model.whoseTurn();
+
 			for (auto& v : *variants)
 			{
 				M modelCopy = model;
@@ -331,7 +333,7 @@ protected:
                 else
                     r = poisk4(modelCopy, depth - 1);
 
-                if (depth % 2 == 0)
+                if (turn0 != player/*depth % 2 == 0*/)
                 {
                     if (r > maxRating)
                         maxRating = r;
@@ -343,7 +345,7 @@ protected:
                         minRating = r;
                 }
 			}
-            if (depth % 2 == 0)
+            if (turn0 != player /*depth % 2 == 0*/)
                 minRating = maxRating;
 		}
 
