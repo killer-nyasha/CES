@@ -25,7 +25,9 @@ class Turn
     friend Board<8, 8>;
     friend LGraphics::LGApp;
 
-    size_t unit = Field::empty;
+    std::vector<Turn> subTurns;
+
+    unsigned char unit = Field::empty;
     bool willBecomeKing_ = false;
     Turn(size_t unit, szvect2 from, szvect2 to, szvect2 ate, bool willBecomeKing_)
         :unit(unit), from(from), to(to), ate(ate), willBecomeKing_(willBecomeKing_) {}
@@ -95,16 +97,16 @@ public:
 
         // если в прошлом ходе шашка съела другую, то нужно проверить
         // не может ли она съесть ещё
-        if (prevTurn.ate.x && prevTurn.ate.y)
-        {
-            //currentTurn = getColor(prevTurn.unit);
-            auto best = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
-            if (best->size())
-            {
-                currentTurn = getColor(prevTurn.unit);
-                return std::move(best);
-            }
-        }
+        //if (prevTurn.ate.x && prevTurn.ate.y)
+        //{
+        //    currentTurn = getColor(prevTurn.unit);
+        //    auto best = beatTurnVariants(prevTurn.to.x, prevTurn.to.y);
+        //    if (best->size())
+        //    {
+        //        currentTurn = getColor(prevTurn.unit);
+        //        return std::move(best);
+        //    }
+        //}
 
         //else
             //currentTurn = currentTurn == White ? Black : White;
@@ -115,7 +117,7 @@ public:
             // (бой обязательный, поэтому проверяется в первую очередь)
             for (size_t i = 1; i <= 8; ++i)
                 for (size_t j = 1; j <= 8; ++j)
-                    if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
+                    if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) == whoseTurn())
                     {
                         auto turns = beatTurnVariants(i, j);
                         res.insert(res.end(), turns->begin(), turns->end());
@@ -126,7 +128,7 @@ public:
 
         for (size_t i = 1; i <= 8; ++i)
             for (size_t j = 1; j <= 8; ++j)
-                if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) != getColor(prevTurn.unit))
+                if ((i + j) % 2 == 0 && isUnit(i, j) && getColor(getField(i, j)) == whoseTurn())
                 {
                     auto turns = turnVariants(i, j, getColor(i, j));
                     res.insert(res.end(), turns->begin(), turns->end());
@@ -153,7 +155,6 @@ public:
     {
         setField(turn.from.x, turn.from.y, empty);
 
-
         if (turn.ate.x != 0 && turn.ate.y != 0)
         {
             getColor(turn.ate.x, turn.ate.y) == White ? wCheckers-- : bCheckers--;
@@ -171,8 +172,11 @@ public:
             setField(turn.to.x, turn.to.y, turn.unit + 2);
             win = getColor(turn.unit);
         }
-        switchTurn();
+
         prevTurn = turn;
+        switchTurn();
+        if (prevTurn.ate.x && beatTurnVariants(prevTurn.to.x, prevTurn.to.y)->size())
+            switchTurn();
     }
 
     int won()
@@ -185,29 +189,13 @@ public:
         return board[(X * (x - 1) + (y - 1)) / 2 * 3 + bit - 1];
     }
 
-    //void drawBoard()
-    //{
-    //    system("cls");
-    //    std::cout << "\n\n\n\n\n\n\n";
-    //    std::cout << "\n                                                    a b c d e f g h";
-    //    std::cout << "\n                                                    ---------------";
-    //    for (size_t i = 8; i >= 1; --i)
-    //    {
-    //        std::cout << "\n                                                  ";
-    //        std::cout << i << "|";
-    //        for (size_t j = 1; j <= 8; ++j)
-    //        {
-    //            if ((i + j) % 2 == 0) drawObject(getField(i, j));
-    //            else std::cout << "  ";
-    //        }
-    //        std::cout << "|" << i;
-    //    }
-    //    std::cout << "\n                                                    ---------------";
-    //    std::cout << "\n                                                    a b c d e f g h";
-    //}
-
     short boardAnalize()
     {
+        if (won() == Black)
+            return INT16_MIN;
+        else if (won() == White)
+            return INT16_MAX;
+           
         short res = 0;
 
         res += (wCheckers - bCheckers)*checkerValue;
@@ -242,18 +230,7 @@ public:
         if (getColor(8, 8) == Black) res += weakPosValue;
         else if (getColor(8, 8) == White) res -= weakPosValue;
 
-        //if (getColor(1, 1) == color) res += weakPosValue;
-        //if (getColor(3, 1) == color) res += weakPosValue;
-        //if (getColor(5, 1) == color) res += weakPosValue;
-        //if (getColor(7, 1) == color) res += weakPosValue;
-        //if (getColor(2, 8) == color) res += weakPosValue;
-        //if (getColor(4, 8) == color) res += weakPosValue;
-        //if (getColor(6, 8) == color) res += weakPosValue;
-        //if (getColor(8, 8) == color) res += weakPosValue;
         return res;
-        //playerAnalize(
-        //etalon = bCheckers * checkerValue + wCheckers * checkerValue + 2 * powerPosValue - 8 * weakPosValue;
-        //return playerAnalize(White) - playerAnalize(Black);
     }
 
     bool whoseTurn() const
@@ -358,6 +335,7 @@ private:
         currentTurn = currentTurn == Black ? White : Black;
     }
 
+    //bool canBeat(const size_t x)
     PoolPointer<std::vector<Turn>> beatTurnVariants(const size_t x, const size_t y) const
     {
         PoolPointer<std::vector<Turn>> p_res;
@@ -366,16 +344,16 @@ private:
         size_t unit = getField(x, y);
         if (isChecker(x, y))
         {
-            if (!outOfRange(x - 1, y - 1) && !outOfRange(x - 2, y - 2) && isUnit(x - 1, y - 1) && isEmpty(x - 2, y - 2) && getColor(x - 1, y - 1) != getColor(unit))
+            if (!outOfRange(x - 2, y - 2) && isUnit(x - 1, y - 1) && isEmpty(x - 2, y - 2) && getColor(x - 1, y - 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x - 2,y - 2 }, { x - 1,y - 1 }, willBecomeKing(x - 2, y - 2, unit)));
 
-            if (!outOfRange(x - 1, y + 1) && !outOfRange(x - 2, y + 2) && isUnit(x - 1, y + 1) && isEmpty(x - 2, y + 2) && getColor(x - 1, y + 1) != getColor(unit))
+            if (!outOfRange(x - 2, y + 2) && isUnit(x - 1, y + 1) && isEmpty(x - 2, y + 2) && getColor(x - 1, y + 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x - 2,y + 2 }, { x - 1 ,y + 1 }, willBecomeKing(x - 2, y + 2, unit)));
 
-            if (!outOfRange(x + 1, y - 1) && !outOfRange(x + 2, y - 2) && isUnit(x + 1, y - 1) && isEmpty(x + 2, y - 2) && getColor(x + 1, y - 1) != getColor(unit))
+            if (!outOfRange(x + 2, y - 2) && isUnit(x + 1, y - 1) && isEmpty(x + 2, y - 2) && getColor(x + 1, y - 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x + 2,y - 2 }, { x + 1, y - 1 }, willBecomeKing(x + 2, y - 2, unit)));
 
-            if (!outOfRange(x + 1, y + 1) && !outOfRange(x + 2, y + 2) && isUnit(x + 1, y + 1) && isEmpty(x + 2, y + 2) && getColor(x + 1, y + 1) != getColor(unit))
+            if (!outOfRange(x + 2, y + 2) && isUnit(x + 1, y + 1) && isEmpty(x + 2, y + 2) && getColor(x + 1, y + 1) != getColor(unit))
                 res.push_back(Turn(unit, { x,y }, { x + 2,y + 2 }, { x + 1, y + 1 }, willBecomeKing(x + 2, y + 2, unit)));
         }
 
@@ -402,10 +380,10 @@ private:
                 res.push_back(Turn(unit, { x,y }, { x + isBlack,y + 1 }, { 0,0 }, willBecomeKing(x + isBlack, y + 1, unit)));
         }
 
-        else if (isKing(x, y))
-        {
-            // v pizdu...
-        }
+        //else if (isKing(x, y))
+        //{
+        //    // v pizdu...
+        //}
         return p_res;
     }
 
@@ -420,7 +398,7 @@ private:
     Turn prevTurn;
     int win = -1;
 
-    size_t wCheckers = 0, bCheckers = 0, wKing = 0, bKing = 0;
+    short wCheckers = 0, bCheckers = 0; //wKing = 0, bKing = 0;
 
     bool currentTurn = White;
 };

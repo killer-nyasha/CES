@@ -54,9 +54,6 @@ public:
 		auto p_turnsW = model.getVariants();
 		auto turnsW = *p_turnsW;
 
-		if (turnsW.size() == 1)
-			return turnsW[0];
-
 		std::vector<float> results;
 
 		for (size_t i = 0; i < turnsW.size(); i++)
@@ -129,12 +126,6 @@ protected:
 			throw std::exception();
 	}
 
-	int getModelTurn(M& model)
-	{
-		auto p_turnsB = model.getVariants();
-		return model.whoseTurn();
-	}
-
 	void setPlayerFromModel(M& model)
 	{
 		if (model.whoseTurn() == White)
@@ -157,21 +148,7 @@ protected:
 
 	float analyze(M& model)
 	{
-		float rating = 0;
-
-		if (model.won() != GAME_GOES_ON)
-		{ 
-			if (model.won() == player)
-				rating += 10000;
-			if (model.won() != player)
-				rating -= 10000;
-		}
-		else
-		{
-			rating += ((player == 1 ? -1 : 1) * model.boardAnalize() + 1) / 2.0f; //0...2 / 2 = 0...1
-		}
-
-		return rating;
+		return (player == 1 ? -1 : 1) * model.boardAnalize();
 	}
 
 	//==========================================================================
@@ -179,7 +156,7 @@ protected:
 #ifdef _DEBUG
 #define DEFAULT_DEPTH 5
 #else
-#define DEFAULT_DEPTH 9
+#define DEFAULT_DEPTH 8
 #endif
 
 	//считает только победы и поражения, не оценивая позицию. возвращает (w, l)
@@ -337,34 +314,36 @@ protected:
         short maxRating = INT16_MIN;
 		//float maxRating = 0;
 
-		// = getModelTurn(model);
-
 		if (model.won() == GAME_GOES_ON && depth > 0)
 		{
 			//if (model.whoseTurn() == player)
 			//{
 			auto variants = model.getVariants();
-			int turn = model.whoseTurn();
-
 			for (auto& v : *variants)
 			{
 				M modelCopy = model;
-				modelCopy.doTurn(v);
-				float r = poisk4(modelCopy, depth - 1);
 
-                if (turn != player /*depth % 2 == 0*/)
+                bool turn = modelCopy.whoseTurn();
+				modelCopy.doTurn(v);
+                float r = 0;
+                if (modelCopy.whoseTurn() == turn)
+                    r = poisk4(modelCopy, depth);      
+                else
+                    r = poisk4(modelCopy, depth - 1);
+
+                if (depth % 2 == 0)
                 {
                     if (r > maxRating)
                         maxRating = r;
                 }
+
                 else
                 {
                     if (r < minRating)
                         minRating = r;
                 }
-
 			}
-            if (turn != player /*depth % 2 == 0*/)
+            if (depth % 2 == 0)
                 minRating = maxRating;
 		}
 
@@ -427,7 +406,7 @@ protected:
 	//auto p_turnsW;
 
 	//для многопоточного поиска кладём результаты одного из ходов.
-	//используем poisk4
+	//используем poisk2
 	void getTurnResult(size_t i, Turn t, M* model)
 	{
 		M modelCopy = *model;
@@ -475,9 +454,6 @@ public:
 		auto turnsW = *p_turnsW;
 
 		//std::vector<std::thread> threads;
-
-		if (turnsW.size() == 1)
-			return turnsW[0];
 
 		for (size_t i = 1; i < turnsW.size(); i++)
 			static_results[i] = 32000;

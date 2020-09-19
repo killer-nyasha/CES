@@ -33,7 +33,7 @@ void tick()
         if (b.whoseTurn() == White)
         {
             auto p_turnsB = b.getVariants();
-            if (b.whoseTurn() == Black) continue;
+            //if (b.whoseTurn() == Black) continue;
             auto turnsB = *p_turnsB;
 
             if (player) //human
@@ -60,7 +60,7 @@ void tick()
         else
         {
             //auto p_turnsW = b.getVariants();
-            if (b.whoseTurn() == White) continue;
+            //if (b.whoseTurn() == White) continue;
             //auto turnsW = *p_turnsW;
 
             bool multithread = true;
@@ -75,8 +75,6 @@ void tick()
                 DeepPoisk<decltype(b), Turn> ces;
                 b.doTurn(ces.selectTurn(b), &app);
             }
-
-
         }
         Sleep(300);
     }
